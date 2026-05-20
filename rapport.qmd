@@ -124,24 +124,60 @@ display(velden_ip)
 
 ## Vergelijking met uitnodigingsregel-inputformaat
 
-De uitnodigingsregel verwacht de volgende kolommen als input:
+**Legenda:**
+✅ Direct beschikbaar in DUO-bestand
+⚠️ Afleidbaar — data is aanwezig, vereist extra transformatiestap
+❌ Niet beschikbaar — ontbreekt fundamenteel in DUO-bestanden
 
 ```{python}
-uitnodigingsregel_velden = {
-    "Studentnummer": ("bsn", "✅ Beschikbaar in alle formaten"),
-    "StudentAge": (None, "⚠️ Geboortedatum niet geëxtraheerd (staat in PER-record maar niet in huidig schema)"),
-    "Dropout": (None, "❌ Niet aanwezig — moet worden afgeleid (geen DIP-record + uitschrijving vóór einddatum)"),
-    "Aanmel_aantal": (None, "⚠️ Aantal ISG-records per student, nog niet berekend"),
-    "VooroplNiveau_*": ("vorig_onderwijs_niveau", "⚠️ Beschikbaar in H15/H17, ontbreekt in H16 (geen GEO-records in XML)"),
-    "Economie / Techniek / etc.": ("opleidingscode", "⚠️ Opleidingscode aanwezig, sector-mapping nog niet geïmplementeerd"),
-    "StudentGender": ("geslacht", "⚠️ Beschikbaar in H15/H17, ontbreekt in H16"),
-    "absence_unauthorized": (None, "❌ Niet aanwezig in DUO-bestanden"),
-    "absence_authorized": (None, "❌ Niet aanwezig in DUO-bestanden"),
-}
+rijen = [
+    # kolom, duo-equivalent, H15, H16, H17, toelichting
+    ("Studentnummer", "bsn (PER-record)",
+     "✅", "✅", "✅",
+     "BSN of Onderwijsnummer direct beschikbaar."),
+
+    ("StudentAge", "geboortedatum (PER[3]) / LeeftijdOpEenAugustusStudiejaar (XML)",
+     "✅", "✅", "❓",
+     "H15: geboortedatum in PER[3], leeftijd berekenen t.o.v. inschrijvingsdatum. "
+     "H16: `LeeftijdOpEenAugustusStudiejaar` direct beschikbaar als getal. "
+     "H17: geboortedatum niet herkend in PER-record — veldformaat onduidelijk zonder PVE H17."),
+
+    ("Dropout", "afgeleid uit DIP + ISG",
+     "⚠️", "⚠️", "⚠️",
+     "Geen DIP-record én uitschrijvingsdatum < geplande einddatum = dropout. "
+     "Data is aanwezig; vereist een afleidingsstap vóór gebruik in het model."),
+
+    ("Aanmel_aantal", "aantal ISG-records per student",
+     "⚠️", "⚠️", "⚠️",
+     "Afleidbaar door ISG-records per student te tellen."),
+
+    ("VooroplNiveau_*", "vorig_onderwijs_niveau (GEO-record)",
+     "⚠️", "❌", "⚠️",
+     "H15/H17: aanwezig in GEO-records (MBO, VMBO, etc.). "
+     "H16 XML: GEO-records ontbreken volledig in TBG-i formaat."),
+
+    ("Economie / Techniek / etc.", "opleidingscode (ISP-record)",
+     "⚠️", "⚠️", "⚠️",
+     "Opleidingscode aanwezig; omzetting naar uitnodigingsregel-sector "
+     "vereist een CROHO-lookup tabel."),
+
+    ("StudentGender", "geslacht (PER-record)",
+     "✅", "❌", "✅",
+     "H15/H17: geslacht (V/M) aanwezig in PER-record. "
+     "H16 XML: geslacht ontbreekt in Inschrijving-element."),
+
+    ("absence_unauthorized", "—",
+     "❌", "❌", "❌",
+     "Niet aanwezig in DUO-bestanden. Fundamentele gap voor het huidige model."),
+
+    ("absence_authorized", "—",
+     "❌", "❌", "❌",
+     "Niet aanwezig in DUO-bestanden. Fundamentele gap voor het huidige model."),
+]
 
 df_vergelijking = pd.DataFrame(
-    [(k, v[0] or "—", v[1]) for k, v in uitnodigingsregel_velden.items()],
-    columns=["Uitnodigingsregel-kolom", "DUO-equivalent", "Status"],
+    rijen,
+    columns=["Uitnodigingsregel-kolom", "DUO-bron", "H15 RO", "H16 TBGI", "H17 IP", "Toelichting"],
 )
 display(df_vergelijking.style.hide(axis="index"))
 ```
@@ -161,8 +197,9 @@ display(df_vergelijking.style.hide(axis="index"))
 
 | # | Bevinding |
 |---|-----------|
-| 1 | **Absenties ontbreken** — `absence_unauthorized` en `absence_authorized` zijn niet aanwezig in DUO-bestanden. Dit is een fundamentele gap voor gebruik in het huidige uitnodigingsregel-model. |
-| 2 | **Dropout-label moet worden afgeleid** — DUO-bestanden bevatten geen kant-en-klaar dropout-label. Afleiding: student met ISG-record maar zonder DIP-record en met uitschrijvingsdatum < einddatum. Dit vraagt extra transformatiestap. |
-| 3 | **H16 XML mist gender en vooropleiding** — GEO-records (vooropleidingshistorie) en geslacht zijn niet aanwezig in het TBG-i formaat. |
-| 4 | **H15 RO format-varianten** — Curio gebruikt `;` als scheidingsteken en Europese datumnotatie; Aventus gebruikt `|` en ISO-datumnotatie. De parser handelt dit automatisch af, maar instellingen moeten hiervan bewust zijn. |
-| 5 | **Sector-mapping nog niet geïmplementeerd** — Opleidingscode is aanwezig, maar omzetting naar uitnodigingsregel-sectoren (Economie/Techniek/etc.) vereist een aparte lookup-tabel. |
+| 1 | **Absenties fundamenteel afwezig** ❌ — `absence_unauthorized` en `absence_authorized` zijn niet aanwezig in DUO-bestanden. Dit is de enige écht ontbrekende feature voor het huidige uitnodigingsregel-model. |
+| 2 | **Leeftijd afleidbaar** ⚠️ — Geboortedatum staat in PER-records (H15/H17); H16 heeft `LeeftijdOpEenAugustusStudiejaar` direct. Nog niet geëxtraheerd in de huidige parser. Voor H17 is het veldformaat onduidelijk — PVE H17 raadplegen. |
+| 3 | **Dropout-label afleidbaar** ⚠️ — Geen DIP-record én uitschrijvingsdatum vóór einddatum = dropout. Vereist een transformatiestap, maar de data is er. |
+| 4 | **H16 XML mist gender en vooropleiding** ❌ — GEO-records en geslacht zijn niet aanwezig in het TBG-i formaat. Dit beperkt de bruikbaarheid van H16 als enige bron. |
+| 5 | **H15 RO format-varianten** — Curio gebruikt `;` en Europese datumnotatie; Aventus gebruikt `|` en ISO-datumnotatie. De parser handelt dit automatisch af. |
+| 6 | **Sector-mapping ontbreekt** ⚠️ — Opleidingscode is aanwezig, maar CROHO-lookup naar uitnodigingsregel-sectoren is nog niet geïmplementeerd. |
