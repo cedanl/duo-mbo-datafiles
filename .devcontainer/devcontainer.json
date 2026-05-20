@@ -1,0 +1,13 @@
+{
+  "name": "duo-mbo-datafiles",
+  "image": "mcr.microsoft.com/devcontainers/python:3.13",
+  "extensions": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "anthropic.claude-code",
+    "charliermarsh.ruff"
+  ],
+  "postCreateCommand": "uv sync",
+  "forwardPorts": [8501],
+  "remoteUser": "vscode"
+}
