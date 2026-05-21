@@ -20,6 +20,7 @@ Hutspot/Datacoalitie heeft voorbeeldbestanden aangeleverd voor drie DUO-bestands
 1. **Kunnen alle drie formaten worden ingelezen?**
 2. **Welke velden zijn beschikbaar per formaat?**
 3. **Wat ontbreekt voor gebruik in de uitnodigingsregel?**
+4. **Kunnen de formaten dienen als tijdelijk alternatief voor 1-cijferHO?**
 
 Referentie: issue [cedanl/uitnodigingsregel#33](https://github.com/cedanl/uitnodigingsregel/issues/33).
 
