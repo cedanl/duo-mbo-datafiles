@@ -15,7 +15,7 @@ execute:
 
 ## Achtergrond
 
-Hutspot/Datacoalitie (Willem-Jan Swiebel) heeft voorbeeldbestanden aangeleverd voor drie DUO-bestandsformaten die in iteratie 6 moeten worden ingelezen. Dit rapport beantwoordt:
+Hutspot/Datacoalitie heeft voorbeeldbestanden aangeleverd voor drie DUO-bestandsformaten die in iteratie 6 moeten worden ingelezen. Dit rapport beantwoordt:
 
 1. **Kunnen alle drie formaten worden ingelezen?**
 2. **Welke velden zijn beschikbaar per formaat?**
@@ -186,7 +186,9 @@ display(df_vergelijking.style.hide(axis="index"))
 
 ## Vergelijking met 1-cijferHO
 
-Vanuit het datacoalitie-perspectief (Willem-Jan) is de vraag of H15/H16/H17 kunnen dienen als **tijdelijk alternatief voor het 1-cijferHO-bestand**, zolang de ROD-wetswijziging nog loopt. Hieronder worden de variabelen uit het 1-cijferHO uitval-bestand vergeleken met wat de drie DUO MBO-formaten leveren.
+Deze sectie beantwoordt de vraag of H15/H16/H17 kunnen dienen als **tijdelijk alternatief voor het 1-cijferHO-bestand**. De variabelen uit het 1-cijferHO uitval-bestand worden vergeleken met wat de drie DUO MBO-formaten leveren.
+
+> ⚠️ De analyse is gebaseerd op snapshot-leveringen. Er is niet gevalideerd of de velden consistent beschikbaar zijn over meerdere tijdsperioden.
 
 De 1-cijferHO-variabelen zijn gebaseerd op het EV-bestand zoals gedocumenteerd in `1cijferho_uitval_documentatie.md` (uitvalanalyse eerstejaars bachelors).
 
@@ -224,6 +226,10 @@ display(df_gap.style.hide(axis="index"))
 | 4 | **VerblijfsjaarHO heeft geen direct MBO-equivalent** ⚠️ — Voor MBO-context is verblijfsjaar afleidbaar via historische inschrijvingsdata, maar dit vereist meerdere opeenvolgende leveringen. |
 | 5 | **Dropout-definitie vereist expliciete documentatie** ⚠️ — De 1-cijferHO-definitie (geen diploma + nergens meer teruggezien) is te vertalen naar MBO-context, maar de transformatie moet gedocumenteerd worden parallel aan `1cijferho_uitval_documentatie.md`. |
 | 6 | **CREBO→sector-vertaaltabel nog niet geïmplementeerd** ⚠️ — Voor sectorvergelijking met CROHO-indeling is een aanvullende mapping nodig. |
+
+### Meerwaarde van combineren
+
+H15 en H17 overlappen sterk in velden — combineren voegt weinig toe. De enige combinatie met meerwaarde is **H15 + H16**: H16 voegt bekostigingsstatus toe (student wel ingeschreven maar niet bekostigd), wat een aanvullend signaal kan zijn voor uitvalanalyse. Fundamentele gaten (VO-eindcijfer, EER) zijn met geen enkele combinatie te vullen.
 
 ---
 
