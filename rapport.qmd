@@ -184,6 +184,49 @@ display(df_vergelijking.style.hide(axis="index"))
 
 ---
 
+## Vergelijking met 1-cijferHO
+
+Vanuit het datacoalitie-perspectief (Willem-Jan) is de vraag of H15/H16/H17 kunnen dienen als **tijdelijk alternatief voor het 1-cijferHO-bestand**, zolang de ROD-wetswijziging nog loopt. Hieronder worden de variabelen uit het 1-cijferHO uitval-bestand vergeleken met wat de drie DUO MBO-formaten leveren.
+
+De 1-cijferHO-variabelen zijn gebaseerd op het EV-bestand zoals gedocumenteerd in `1cijferho_uitval_documentatie.md` (uitvalanalyse eerstejaars bachelors).
+
+**Legenda:** ✅ Direct beschikbaar — ⚠️ Afleidbaar (transformatie nodig) — ❌ Niet beschikbaar
+
+```{python}
+import pandas as pd
+from IPython.display import display
+
+df_gap = pd.DataFrame(
+    [
+        ["Studentnummer (BSN)", "bsn", "✅", "✅", "✅", "Direct beschikbaar in alle formaten"],
+        ["Cohortjaar", "inschrijving_start", "✅", "✅", "✅", "Afleidbaar als jaar van inschrijving_start"],
+        ["Dropout", "uitschrijving_reden + heeft_diploma", "⚠️", "⚠️", "⚠️", "Afleidbaar: geen diploma + uitschrijving + geen herinschrijving; vereist transformatie"],
+        ["Leeftijd", "geboortedatum / leeftijdsveld", "⚠️", "⚠️", "⚠️", "H15/H17: via geboortedatum in PER-record; H16: via LeeftijdOpEenAugustusStudiejaar"],
+        ["VerblijfsjaarHO", "—", "❌", "❌", "❌", "HO-specifiek; geen MBO-equivalent standaard geleverd (afleidbaar via historiek meerdere leveringen)"],
+        ["VO-eindcijfer", "—", "❌", "❌", "❌", "Niet aanwezig in DUO MBO-bestanden; fundamenteel ontbrekend"],
+        ["Geslacht", "geslacht", "✅", "❌", "✅", "H16 mist geslacht (geen PER-record in XML-formaat)"],
+        ["EER-indicator", "—", "❌", "❌", "❌", "Nationaliteit/EER niet aanwezig in MBO-leveringen"],
+        ["Vooropleiding (categorie)", "vorig_onderwijs_niveau + vorig_onderwijs_graad", "⚠️", "❌", "⚠️", "H15/H17: niveau en graad aanwezig via GEO-record; H16 mist GEO-records; mapping naar 1-cijferHO-categorieën vereist vertaaltabel"],
+        ["Opleidingssector", "opleidingscode (CREBO)", "⚠️", "⚠️", "⚠️", "CREBO-code aanwezig; conversie naar sector mogelijk via CREBO-register, maar niet 1-op-1 met CROHO-indeling HO"],
+    ],
+    columns=["1-cijferHO variabele", "DUO-bron", "H15 RO", "H16 TBG-i", "H17 IP", "Toelichting"],
+)
+display(df_gap.style.hide(axis="index"))
+```
+
+### Conclusie: bruikbaarheid als tijdelijk alternatief
+
+| # | Bevinding |
+|---|-----------|
+| 1 | **H15 en H17 zijn bruikbaar als tijdelijk alternatief** ✅ — Beide formaten dekken de meeste kernvariabelen van 1-cijferHO: BSN, cohortjaar, dropout (afleidbaar), leeftijd (afleidbaar), geslacht en vooropleiding. |
+| 2 | **H16 is ongeschikt als standalone bron** ❌ — Geslacht en vooropleiding ontbreken in het XML-formaat; H16 is wel bruikbaar in combinatie met H15 of H17. |
+| 3 | **Fundamentele gaten in alle drie formaten** ❌ — VO-eindcijfer en EER-indicator zijn niet aanwezig. Analyses die deze variabelen vereisen, zijn niet uitvoerbaar zonder aanvullende databron. |
+| 4 | **VerblijfsjaarHO heeft geen direct MBO-equivalent** ⚠️ — Voor MBO-context is verblijfsjaar afleidbaar via historische inschrijvingsdata, maar dit vereist meerdere opeenvolgende leveringen. |
+| 5 | **Dropout-definitie vereist expliciete documentatie** ⚠️ — De 1-cijferHO-definitie (geen diploma + nergens meer teruggezien) is te vertalen naar MBO-context, maar de transformatie moet gedocumenteerd worden parallel aan `1cijferho_uitval_documentatie.md`. |
+| 6 | **CREBO→sector-vertaaltabel nog niet geïmplementeerd** ⚠️ — Voor sectorvergelijking met CROHO-indeling is een aanvullende mapping nodig. |
+
+---
+
 ## Conclusies
 
 ### Wat werkt
