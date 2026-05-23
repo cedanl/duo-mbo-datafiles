@@ -38,6 +38,10 @@ def parse_grondslag_ip(path: str | Path) -> pd.DataFrame:
                 students[bsn] = _init_student_record(
                     bsn, brin=None, geslacht=parts[6] if len(parts) > 6 else None
                 )
+                raw_leeftijd = parts[2] if len(parts) > 2 else None
+                students[bsn]["leeftijd"] = (
+                    int(raw_leeftijd) if raw_leeftijd and raw_leeftijd.isdigit() else None
+                )
 
             elif record_type == "ISG" and parts[1] in students:
                 s = students[parts[1]]
@@ -94,6 +98,7 @@ def _parse_ro_records(path: Path, brin_fallback: str | None) -> pd.DataFrame:
                 students[bsn] = _init_student_record(
                     bsn, brin=brin, geslacht=parts[4] if len(parts) > 4 else None
                 )
+                students[bsn]["geboortedatum"] = parts[3] if len(parts) > 3 else None
 
             elif record_type == "ISG" and parts[1] in students:
                 s = students[parts[1]]
@@ -129,6 +134,8 @@ def _init_student_record(bsn: str, brin: str | None, geslacht: str | None) -> di
         "opleidingscode": None,
         "vorig_onderwijs_niveau": None,
         "vorig_onderwijs_graad": None,
+        "geboortedatum": None,
+        "leeftijd": None,
     }
 
 
@@ -153,6 +160,10 @@ def _extract_tbgi_inschrijving(node) -> dict:
 
     teldatum = node.find("Teldatum")
 
+    raw_leeftijd = (
+        teldatum.findtext("LeeftijdOpEenAugustusStudiejaar") if teldatum is not None else None
+    )
+
     return {
         "bsn": text("Burgerservicenummer"),
         "brin": text("BRIN"),
@@ -165,6 +176,8 @@ def _extract_tbgi_inschrijving(node) -> dict:
         "heeft_diploma": node.find("Diploma") is not None,
         "vorig_onderwijs_niveau": None,
         "vorig_onderwijs_graad": None,
+        "geboortedatum": None,
+        "leeftijd": int(raw_leeftijd) if raw_leeftijd and raw_leeftijd.isdigit() else None,
     }
 
 
@@ -183,6 +196,12 @@ def _cast_types(df: pd.DataFrame, date_format: str) -> pd.DataFrame:
                 df[col] = pd.to_datetime(df[col], format="mixed", dayfirst=True, errors="coerce")
             else:
                 df[col] = pd.to_datetime(df[col], format=date_format, errors="coerce")
+    if "geboortedatum" in df.columns:
+        df["geboortedatum"] = pd.to_datetime(
+            df["geboortedatum"], format="mixed", dayfirst=False, errors="coerce"
+        )
+    if "leeftijd" in df.columns:
+        df["leeftijd"] = pd.to_numeric(df["leeftijd"], errors="coerce").astype("Int64")
     if "heeft_diploma" in df.columns:
         df["heeft_diploma"] = df["heeft_diploma"].astype(bool)
     if "vorig_onderwijs_graad" in df.columns:

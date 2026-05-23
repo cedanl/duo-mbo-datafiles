@@ -204,7 +204,7 @@ df_gap = pd.DataFrame(
         ["Studentnummer (BSN)", "bsn", "✅", "✅", "✅", "Direct beschikbaar in alle formaten"],
         ["Cohortjaar", "inschrijving_start", "✅", "✅", "✅", "Afleidbaar als jaar van inschrijving_start"],
         ["Dropout", "uitschrijving_reden + heeft_diploma", "⚠️", "⚠️", "⚠️", "Afleidbaar: geen diploma + uitschrijving + geen herinschrijving; vereist transformatie"],
-        ["Leeftijd", "geboortedatum / leeftijdsveld", "⚠️", "⚠️", "⚠️", "H15/H17: via geboortedatum in PER-record; H16: via LeeftijdOpEenAugustusStudiejaar"],
+        ["Leeftijd", "geboortedatum / leeftijdsveld", "⚠️", "✅", "✅", "H15: afleidbaar via geboortedatum (PER[3]); H16: LeeftijdOpEenAugustusStudiejaar; H17: leeftijd integer in PER[2]"],
         ["VerblijfsjaarHO", "—", "❌", "❌", "❌", "HO-specifiek; geen MBO-equivalent standaard geleverd (afleidbaar via historiek meerdere leveringen)"],
         ["VO-eindcijfer", "—", "❌", "❌", "❌", "Niet aanwezig in DUO MBO-bestanden; fundamenteel ontbrekend"],
         ["Geslacht", "geslacht", "✅", "❌", "✅", "H16 mist geslacht (geen PER-record in XML-formaat)"],
@@ -215,6 +215,56 @@ df_gap = pd.DataFrame(
     columns=["1-cijferHO variabele", "DUO-bron", "H15 RO", "H16 TBG-i", "H17 IP", "Toelichting"],
 )
 display(df_gap.style.hide(axis="index"))
+```
+
+### Afleidbare variabelen in de praktijk
+
+De ⚠️-claims worden hieronder empirisch onderbouwd op de demo-data. Code roept `transform.py` aan en toont het resultaat. Beperkingen door de kleine steekproef (10 studenten) zijn expliciet benoemd.
+
+```{python}
+from duo_mbo_datafiles.transform import (
+    derive_cohortjaar,
+    derive_dropout,
+    derive_leeftijd,
+    derive_vooropleiding_categorie,
+    derive_opleidingssector,
+)
+
+df_h15 = parse_ro(DEMO / "h15" / "RO_27DV_20240731_20260324.csv")
+df_h17 = parse_grondslag_ip(DEMO / "h17" / "GRONDSLAG_IP_MBO_27DV_20251119_2025.csv")
+
+resultaat = pd.DataFrame({
+    "bsn": df_h15["bsn"],
+    "cohortjaar": derive_cohortjaar(df_h15),
+    "leeftijd_h15": derive_leeftijd(df_h15),
+    "dropout": derive_dropout(df_h15),
+    "vooropleiding": derive_vooropleiding_categorie(df_h15),
+    "sector": derive_opleidingssector(df_h15),
+})
+display(resultaat.style.hide(axis="index"))
+```
+
+**Toelichting per variabele:**
+
+| Variabele | Resultaat | Opmerking |
+|-----------|-----------|-----------|
+| `cohortjaar` | ✅ Afleidbaar | Jaar uit `inschrijving_start`; werkt op alle drie formaten |
+| `leeftijd` (H15) | ✅ Afleidbaar | Berekend uit geboortedatum (PER[3]) op peildatum 1 oktober cohortjaar |
+| `leeftijd` (H17) | ✅ Direct beschikbaar | Integer leeftijd in PER[2]; referentiedatum onduidelijk zonder PVE H17 |
+| `leeftijd` (H16) | ✅ Direct beschikbaar | `LeeftijdOpEenAugustusStudiejaar` in XML |
+| `dropout` | ⚠️ Afleidbaar (beperkt) | Uitschrijving zonder diploma = dropout; **snapshot-beperking**: herinschrijving elders niet zichtbaar in één levering |
+| `vooropleiding_categorie` | ⚠️ Afleidbaar (deels) | MBO/HAVO/VWO herkenbaar via `vorig_onderwijs_niveau`; MBO 1-2 vs 3-4 vereist DUO GEO-graadspecificatie |
+| `opleidingssector` | ❌ Niet afleidbaar zonder externe data | CREBO-code aanwezig, maar sector-mapping vereist het DUO CREBO-register |
+
+```{python}
+# H17: leeftijd is direct beschikbaar als integer uit PER-record
+resultaat_h17 = pd.DataFrame({
+    "bsn": df_h17["bsn"],
+    "leeftijd_direct": df_h17["leeftijd"],
+    "dropout": derive_dropout(df_h17),
+    "vooropleiding": derive_vooropleiding_categorie(df_h17),
+})
+display(resultaat_h17.style.hide(axis="index"))
 ```
 
 ### Conclusie: bruikbaarheid als tijdelijk alternatief
