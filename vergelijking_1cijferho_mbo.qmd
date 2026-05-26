@@ -198,88 +198,116 @@ for categorie, groep in df.groupby("Categorie", sort=False):
 
 ## Dimensie-analyse
 
+> **Leeswijzer uitvoerbaarheid**
+>
+> - 🟢 **Uitvoerbaar** — voldoende variabelen aanwezig voor zinvolle analyse
+> - 🟡 **Beperkt uitvoerbaar** — basisanalyse mogelijk, maar belangrijke variabelen ontbreken
+> - 🔴 **Niet uitvoerbaar** — te veel essentiële variabelen ontbreken voor betrouwbare conclusies
+
+---
+
 ### 1. Kansengelijkheid
 
-Kansengelijkheidanalyse vereist inzicht in achtergrondkenmerken van studenten: herkomst, nationaliteit, sociaaleconomische positie en geografische spreiding. Deze dimensie is in 1cijferHO sterk gedekt dankzij de herkomstvariabelen (nationaliteit, geboorteland ouders, etniciteit, generatie, CBS-herkomstindeling) en postcode.
+**Uitvoerbaarheid: 🔴 Niet uitvoerbaar met huidige MBO-data**
 
-In de MBO-bestanden zijn **vrijwel alle herkomstvariabelen afwezig**. Geslacht en vooropleiding bieden een minimale basis voor subgroepanalyse, maar voor herkomstgerelateerde ongelijkheid — de kern van kansengelijkheidonderzoek — ontbreekt het fundament.
+Kansengelijkheidsanalyse vereist inzicht in de achtergrondkenmerken van studenten: herkomst, nationaliteit, sociaaleconomische positie en geografische spreiding. In 1cijferHO zijn deze gedekt via nationaliteit, geboorteland ouders, etniciteit, generatie, CBS-herkomstindeling en postcode. In de MBO-bestanden ontbreken al deze variabelen.
+
+Geslacht en vooropleiding bieden een minimale basis voor subgroepvergelijking, maar voor de kern van kansengelijkheidonderzoek — ongelijkheid naar herkomst en sociaaleconomische achtergrond — ontbreekt het fundament volledig. De uitnodigingsregel en student-signal library kunnen in principe subgroepanalyses uitvoeren, maar hebben dan herkomstvariabelen als input nodig die niet beschikbaar zijn.
+
+**Wat wordt mogelijk met longitudinale data:** Tijdreeksanalyse op uitvalverschillen naar geslacht en vooropleidingstype over cohorten — maar niet naar herkomst zolang die variabelen structureel ontbreken.
 
 **Essentiële variabelen aanwezig ✅**
 
 - Geslacht (H15/H17)
 - Vooropleiding niveau (H15/H17)
 - Leeftijd (H16/H17 direct; H15 afleidbaar)
-- Inschrijving start/eind, uitschrijving reden
 
 **Essentiële variabelen ontbrekend ❌**
 
-- EER-indicator, nationaliteit, geboorteland ouders
+- EER-indicator, nationaliteit (1/2/3), geboorteland ouders
 - Etniciteit, generatie, herkomstindeling CBS
 - Postcode student (geografische spreiding)
-- VO-eindcijfer (instroomkwaliteit per groep)
+- VO-eindcijfer (instroomkwaliteit per achtergrondgroep)
 
 ---
 
 ### 2. Toegangsbeleid
 
-Toegangsbeleid draait om de vraag welke studenten instromen, met welke achtergrond en prestaties, en of het instroomproces gelijkwaardig toegankelijk is. Centrale variabelen zijn vooropleiding (type én niveau), VO-eindcijfer, en eerstejaars-indicatoren.
+**Uitvoerbaarheid: 🟡 Beperkt uitvoerbaar**
 
-De MBO-bestanden leveren globale vooropleidingsinformatie (niveau H15/H17) en leertraject (BOL/BBL), maar missen de detaillering die selectiviteitsanalyse mogelijk maakt. Met name het ontbreken van VO-eindcijfer en diplomajaar vooropleiding maakt het onmogelijk om instroomkwaliteit over tijd of per opleiding te analyseren.
+Toegangsbeleid draait om de vraag welke studenten instromen, met welke achtergrond en voorbereiding. Globale vooropleidingscategorieën (MBO/VMBO/HAVO/VWO via H15/H17) en leertraject (BOL/BBL) zijn beschikbaar. Hiermee zijn instroomprofielen op hoofdlijnen te beschrijven.
+
+Wat ontbreekt is de diepgang: VO-eindcijfer maakt het onmogelijk om instroomkwaliteit te meten of te vergelijken met selectiedrempels. Zonder diplomajaar en instelling van de vooropleiding is evenmin te bepalen hoe recent en relevant de vooropleiding was. De uitnodigingsregel gebruikt `VooroplNiveau_*` als feature — die is met de MBO-data globaal te reconstrueren, maar de subtypen (VMBO-BB/KB/GL/TL, MBO 1/2/3/4) zijn niet te onderscheiden zonder de gedetailleerde DUO-codering.
+
+**Wat wordt mogelijk met longitudinale data:** Instroomtrends per vooropleidingstype over meerdere cohorten; analyse van wie op welk moment in- en uitstroomt per opleiding.
 
 **Essentiële variabelen aanwezig ✅**
 
-- Vooropleiding niveau (H15/H17)
+- Vooropleiding niveau globaal (H15/H17): MBO/VMBO/HAVO/VWO
 - Leertraject BOL/BBL
-- Opleidingscode (CREBO)
-- Leeftijd bij inschrijving
+- Opleidingscode (CREBO), leeftijd bij inschrijving
+- Uitschrijvingsreden, diplomastatus
 
 **Essentiële variabelen ontbrekend ❌**
 
-- VO-eindcijfer
-- Diplomajaar en instelling vooropleiding
+- VO-eindcijfer (instroomkwaliteitsmaatstaf)
+- Diplomajaar en instelling van vooropleiding
 - Eerstejaars-indicator (niet standaard geleverd)
-- Gedetailleerde vooropleidingscode (DUO-codering)
+- Gedetailleerde vooropleidingscode (VMBO-subtype, MBO-niveau 1-4)
 
 ---
 
 ### 3. Studentstromen & student journey
 
-Student journey-analyse volgt studenten over meerdere inschrijvingen, opleidingen en instellingen. Dit vereist longitudinale data: verblijfsjaar, eerstejaars-indicator, uitschrijvingsredenen, en idealiter koppeling tussen MBO en HO.
+**Uitvoerbaarheid: 🟡 Beperkt uitvoerbaar — sterk verbeterd met longitudinale data**
 
-De MBO-bestanden bevatten inschrijvingshistoriek (start, eind, reden) en diplomagegevens — voldoende voor uitvalanalyse binnen één levering. Verblijfsjaar is alleen beschikbaar via H16 (`AantalBekostigdeVerblijfsjarenMBO`). Eerstejaars-indicatoren en cross-sectorale doorstroom (MBO→HO) ontbreken volledig. Longitudinale analyse vereist meerdere opeenvolgende leveringen.
+Studentstromen analyseren betekent studenten volgen over inschrijvingen, opleidingen en instellingen heen. Met één levering is uitvalanalyse per cohort uitvoerbaar: de uitnodigingsregel en student-signal draaien op basis van inschrijving, diploma en uitschrijvingsreden. Verblijfsjaar is alleen beschikbaar via H16 (`AantalBekostigdeVerblijfsjarenMBO`).
+
+De huidige data is **niet longitudinaal**: één levering is een snapshot. Herinschrijving elders, doorstroom naar HO, en studiepaden over meerdere jaren zijn hiermee niet zichtbaar. Absentievariabelen (`absence_unauthorized`, `absence_authorized`) — een kernfeature in de uitnodigingsregel — ontbreken volledig in alle DUO MBO-formaten en zijn ook niet afleidbaar.
+
+**Wat wordt mogelijk met longitudinale data (meerdere opeenvolgende leveringen):**
+
+- Verblijfsjaar MBO afleidbaar voor H15/H17 (nu alleen H16)
+- Eerstejaars-indicator per cohort construeerbaar
+- Uitvalpatronen over cohorten vergelijkbaar (cohortanalyse)
+- Herinschrijving na uitval zichtbaar (dropout-definitie dichter bij 1cijferHO)
+- Doorstroompatronen binnen MBO traceerbaar (opleiding A → B, niveau 2 → 4)
 
 **Essentiële variabelen aanwezig ✅**
 
-- Inschrijving start/eind, uitschrijving reden
-- Heeft diploma (DIP-record)
-- Diplomadatum (afleidbaar)
-- Verblijfsjaar MBO (H16 only)
-- Leertraject, opleidingscode
+- Inschrijving start/eind, uitschrijvingsreden
+- Diploma (DIP-record), diplomadatum
+- Verblijfsjaar MBO (H16)
+- Leertraject (BOL/BBL), opleidingscode
 
 **Essentiële variabelen ontbrekend ❌**
 
-- Verblijfsjaar (H15/H17 — alleen H16)
-- Eerstejaars-indicator (niet standaard)
-- Koppeling MBO→HO doorstroom
+- Absentie (`absence_unauthorized`, `absence_authorized`) — kernfeature uitnodigingsregel, niet aanwezig in DUO MBO-formaten
+- Verblijfsjaar (H15/H17 — alleen in H16)
+- Eerstejaars-indicator
+- Koppeling MBO→HO doorstroom (cross-sectoraal)
 - Postcode (geografische mobiliteit)
 
 ---
 
-### 4. Vooropleidingen & doorstroom
+### 4. Vooropleidingen & instroomprofielen
 
-Analyse van instroomprofielen per vooropleidingstype — en hoe studenten met verschillende achtergronden presteren — vereist gedetailleerde vooropleidingsinformatie: type, niveau, diplomajaar, instelling en behaald eindcijfer.
+**Uitvoerbaarheid: 🟡 Beperkt uitvoerbaar**
 
-De MBO-bestanden leveren via GEO-records een globale categorisering (niveau: MBO/VMBO/HAVO/VWO, H15/H17). H16 mist deze records volledig. De DUO-codering voor vooropleidingstype (nodig voor uitsplitsing MBO 1-2 vs 3-4, VMBO-BB vs TL, etc.) is niet beschikbaar. VO-eindcijfer, diplomajaar en instelling van de vooropleiding ontbreken in alle drie formaten.
+Analyse van instroomprofielen per vooropleidingstype is op hoofdlijnen mogelijk: MBO, VMBO, HAVO en VWO zijn onderscheidbaar via H15/H17. De uitnodigingsregel gebruikt `VooroplNiveau_*` als feature (HAVO, MBO, VMBO_BB, VMBO_GL, VMBO_KB, VMBO_TL, VWOplus etc.) — die uitsplitsing is **niet te maken** met de huidige MBO-data, omdat GEO-records alleen de hoofdcategorie leveren zonder VMBO-subtype of MBO-niveau.
+
+Prestatievergelijking per instroomtype — de analytisch meest waardevolle toepassing — vereist VO-eindcijfer en diplomajaar, die beide ontbreken. H16 mist GEO-records volledig.
+
+**Wat wordt mogelijk met longitudinale data:** Uitvalvergelijking per instroomtype over cohorten; analyse of instroomsamenstelling per opleiding verschuift over tijd.
 
 **Essentiële variabelen aanwezig ✅**
 
-- Vorig onderwijs niveau (H15/H17)
-- Vorig onderwijs graad (H15/H17, betekenis deels onduidelijk)
+- Vorig onderwijs niveau (H15/H17): MBO/VMBO/HAVO/VWO
+- Vorig onderwijs graad (H15/H17; exacte DUO-betekenis vereist PVE-verificatie)
 
 **Essentiële variabelen ontbrekend ❌**
 
-- Gedetailleerde DUO-vooropleidingscode (uitsplitsing binnen categorieën)
-- Diplomajaar vooropleiding
-- Instelling vooropleiding
+- Gedetailleerde DUO-vooropleidingscode (VMBO-subtype BB/KB/GL/TL, MBO niveau 1-4)
 - VO-eindcijfer
-- Vooropleiding binnen MBO (hoogste vooropleiding binnen sector)
+- Diplomajaar en instelling van vooropleiding
+- Vooropleidingsinformatie in H16 (GEO-records afwezig)
