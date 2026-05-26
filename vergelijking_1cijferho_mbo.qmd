@@ -1,0 +1,285 @@
+---
+title: "1cijferHO vs MBO-bestandsformaten — Vergelijking"
+subtitle: "Welke variabelen zijn beschikbaar en wat is de impact?"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    theme: cosmo
+execute:
+  echo: true
+  warning: false
+---
+
+## Inleiding
+
+Dit rapport vergelijkt de variabelen uit het **1cijferHO EV-bestand** (115 kolommen) met wat de DUO MBO-bestandsformaten H15 (RO), H16 (TBG-i) en H17 (Grondslag IP) gezamenlijk kunnen leveren. Doel: inzicht geven in welke diagnostische analyses met de MBO-data mogelijk zijn en waar beperkingen ontstaan.
+
+1cijferHO is de leidende referentie. Per variabele is aangegeven of deze beschikbaar is in de MBO-bestanden (gecombineerd best-case). Vervolgens wordt per diagnostische dimensie geanalyseerd hoe uitvoerbaar de bijbehorende analyses zijn.
+
+**Notatie:**
+
+| Symbool | Betekenis |
+|---------|-----------|
+| ✅ | Aanwezig in MBO-data |
+| ⚠️ | Deels beschikbaar — zie noot |
+| ❌ | Niet aanwezig in MBO-data |
+
+> ⚠️-noot H15/H17: variabele aanwezig in H15 en H17, maar **niet in H16** (TBG-i XML).
+
+---
+
+## Vergelijkingstabel
+
+```{python}
+import pandas as pd
+from IPython.display import display, HTML
+
+KOLOMMEN = {
+    "Persoonskenmerken": [
+        ("Burgerservicenummer", "✅", ""),
+        ("Onderwijsnummer", "❌", ""),
+        ("Persoonsgebonden nummer", "❌", "Niet aanwezig in MBO-leveringen"),
+        ("Geslacht", "⚠️", "H15/H17 wel, H16 niet"),
+        ("Leeftijd per peildatum 1 oktober", "⚠️", "H16/H17 direct beschikbaar; H15 afleidbaar via geboortedatum"),
+        ("Leeftijd per 1 januari", "❌", ""),
+        ("Indicatie geboren", "❌", ""),
+    ],
+    "Herkomst & nationaliteit": [
+        ("Nationaliteit 1", "❌", ""),
+        ("Nationaliteit 2", "❌", ""),
+        ("Nationaliteit 3", "❌", ""),
+        ("Geboorteland", "❌", ""),
+        ("Geboorteland ouder 1", "❌", ""),
+        ("Geboorteland ouder 2", "❌", ""),
+        ("Etniciteit", "❌", ""),
+        ("Generatie", "❌", ""),
+        ("Herkomstland volgens CBS-definitie", "❌", ""),
+        ("Herkomst-indikking volgens CBS-definitie", "❌", ""),
+        ("Indicatie EER actueel", "❌", ""),
+        ("Indicatie internationale student", "❌", ""),
+        ("Indicatie EER op peildatum 1 oktober", "❌", ""),
+        ("Nationaliteit gebruikt voor bepaling ind. EER actueel", "❌", ""),
+        ("Nationaliteit gebruikt voor bepaling ind. EER peildatum", "❌", ""),
+    ],
+    "Inschrijving": [
+        ("Inschrijvingsjaar", "✅", "Afleidbaar uit datum inschrijving"),
+        ("Datum inschrijving", "✅", ""),
+        ("Datum uitschrijving", "✅", ""),
+        ("Maand vanaf", "⚠️", "Afleidbaar uit datum inschrijving"),
+        ("Maand tot", "⚠️", "Afleidbaar uit datum uitschrijving"),
+        ("Code beëindiging", "✅", ""),
+        ("Code bekostiging", "⚠️", "H16: IndicatieBekostigbaar + Bekostigingsstatus"),
+        ("Inschrijvingsvorm", "⚠️", "Leertraject BOL/BBL beschikbaar; niet exact equivalent"),
+        ("Indicatie actief op peildatum", "❌", "Niet standaard geleverd in MBO-formaten"),
+        ("Indicatie soort programma", "❌", ""),
+        ("Soort inschrijving hoger onderwijs", "❌", ""),
+        ("Soort inschrijving soort ho", "❌", ""),
+        ("Soort inschrijving type ho binnen soort ho", "❌", ""),
+        ("Soort inschrijving opleiding actueel equivalent", "❌", ""),
+        ("Soort inschrijving actuele instelling", "❌", ""),
+        ("Soort inschrijving actuele opleiding-instelling", "❌", ""),
+        ("Soort inschrijving act. inst - type ho binnen soort ho", "❌", ""),
+        ("Soort inschrijving type ho binnen ho", "❌", ""),
+        ("Soort inschrijving continu hoger onderwijs", "❌", ""),
+        ("Soort inschrijving continu soort ho", "❌", ""),
+        ("Soort inschrijving continu actuele instelling", "❌", ""),
+        ("Soort inschrijving continu type ho binnen ho", "❌", ""),
+    ],
+    "Opleiding & instelling": [
+        ("Instellingscode", "✅", "BRIN"),
+        ("Actuele instelling", "✅", "BRIN"),
+        ("Actuele instelling vóór besturenfusies", "❌", ""),
+        ("Opleidingscode", "⚠️", "CREBO-code aanwezig; andere codering dan CROHO — sectorMapping vereist"),
+        ("Opleidingsvorm", "⚠️", "Leertraject BOL/BBL beschikbaar; niet exact equivalent aan HO-opleidingsvorm"),
+        ("Opleidingsfase", "❌", "HO-specifiek (B/M/A); MBO gebruikt niveau 1-4"),
+        ("Opleidingsfase actueel", "❌", ""),
+        ("Soort hoger onderwijs", "❌", "HO-specifiek (WO/HBO); niet van toepassing op MBO"),
+        ("Type hoger onderwijs binnen soort hoger onderwijs", "❌", ""),
+        ("Opleiding actueel equivalent", "❌", ""),
+        ("Opleiding historisch equivalent", "❌", ""),
+        ("Croho-onderdeel actuele opleiding", "❌", "MBO gebruikt CREBO; CROHO is HO-sectorindeling"),
+        ("Croho-subonderdeel actuele opleiding", "❌", ""),
+        ("ISCEDF2013-rubriek", "❌", ""),
+        ("Indicatie University College", "❌", "HO-specifiek"),
+        ("Vestigingsnummer", "❌", "Niet geëxtraheerd in huidige parsers"),
+        ("Vestigingsnummer actueel", "❌", ""),
+        ("Vestigingsnummer actueel diploma", "❌", ""),
+    ],
+    "Diploma & resultaat": [
+        ("Diplomajaar", "⚠️", "Diplomadatum aanwezig in DIP-record; jaar afleidbaar"),
+        ("Datum tekening diploma", "⚠️", "Diplomadatum aanwezig in DIP-record (H15/H16/H17)"),
+        ("Opleidingsfase actueel van het diploma", "❌", ""),
+        ("Soort diploma hoger onderwijs internat.statistiek", "❌", "HO-specifiek"),
+        ("Soort diploma hoger onderwijs", "❌", ""),
+        ("Soort diploma soort hoger onderwijs", "❌", ""),
+        ("Soort diploma instelling", "❌", ""),
+        ("Code examenresultaat", "❌", ""),
+        ("Maand examenresultaat", "❌", ""),
+        ("Vestigingsnummer diploma", "❌", ""),
+        ("Vestigingsnummer van de hoogste vooropl. vóór het HO", "❌", ""),
+        ("Vestigingsnummer van de hoogste vooropl. binnen het HO", "❌", ""),
+        ("Vestigingsnummer van de hoogste vooropleiding", "❌", ""),
+    ],
+    "Vooropleiding": [
+        ("Hoogste vooropleiding vóór het HO", "⚠️", "Niveau aanwezig H15/H17 (GEO-record); H16 niet; mapping naar DUO-codes vereist"),
+        ("Hoogste vooropleiding vóór het HO oorspronkelijke code", "❌", "Alleen globale categorie beschikbaar"),
+        ("Diplomajaar van de hoogste vooropl. vóór het HO", "❌", ""),
+        ("Instelling van de hoogste vooropl. vóór het HO", "❌", ""),
+        ("Postcodecijfers van de hoogste vooropl. vóór het HO", "❌", ""),
+        ("Hoogste vooropleiding binnen het HO", "❌", "MBO-equivalent niet aanwezig"),
+        ("Hoogste vooropleiding binnen het HO oorspronkelijke code", "❌", ""),
+        ("Diplomajaar van de hoogste vooropl. binnen het HO", "❌", ""),
+        ("Instelling van de hoogste vooropl. binnen het HO", "❌", ""),
+        ("Hoogste vooropleiding", "❌", ""),
+        ("Diplomajaar hoogste vooropleiding", "❌", ""),
+        ("Instelling van de hoogste vooropleiding", "❌", ""),
+        ("Gem. eindcijfer VO van de hoogste vooropl. vóór het HO", "❌", "Niet aanwezig in DUO MBO-leveringen"),
+    ],
+    "Verblijfsjaar & eerstejaars": [
+        ("Verblijfsjaar hoger onderwijs", "⚠️", "H16: AantalBekostigdeVerblijfsjarenMBO; H15/H17 niet aanwezig"),
+        ("Verblijfsjaar soort ho", "❌", ""),
+        ("Verblijfsjaar type ho binnen soort ho", "❌", ""),
+        ("Verblijfsjaar actuele opleiding", "❌", ""),
+        ("Verblijfsjaar actuele instelling", "❌", ""),
+        ("Verblijfsjaar actuele opleiding-instelling", "❌", ""),
+        ("Verblijfsjaar act. inst - type ho binnen soort ho", "❌", ""),
+        ("Verblijfsjaar type ho binnen ho", "❌", ""),
+        ("Verblijfsjaar continu ho", "❌", ""),
+        ("Verblijfsjaar continu soort ho", "❌", ""),
+        ("Verblijfsjaar continu actuele instelling", "❌", ""),
+        ("Verblijfsjaar continu type ho binnen ho", "❌", ""),
+        ("Indicatie eerstejaars opl. actueel equivalent", "❌", ""),
+        ("Indicatie eerstejaars actuele instelling", "❌", "Niet standaard geleverd; deels afleidbaar"),
+        ("Indicatie eerstejaars actuele opl.-instelling", "❌", ""),
+        ("Indicatie eerstejaars continu hoger onderwijs", "❌", ""),
+        ("Indicatie eerstejaars continu soort ho", "❌", ""),
+        ("Indicatie eerstejaars continu actuele instelling", "❌", ""),
+        ("Indicatie eerstejaars continu type ho binnen ho", "❌", ""),
+        ("Indicatie eerstejrs act. inst - type ho binnen soort ho", "❌", ""),
+        ("Eerste jaar in het hoger onderwijs", "❌", ""),
+        ("Eerste jaar aan deze instelling", "❌", ""),
+        ("Eerste jaar aan deze soort hoger onderwijs", "❌", ""),
+        ("Eerste jaar aan deze opleiding-instelling", "❌", ""),
+        ("Gecorrigeerd eerste jaar aan deze instelling", "❌", ""),
+        ("Eerste jaar aan deze actuele instelling", "❌", ""),
+    ],
+    "Postcode & geografie": [
+        ("Postcodecijfers student op 1 oktober", "❌", "Niet aanwezig in DUO MBO-leveringen"),
+    ],
+}
+
+rijen = []
+for categorie, velden in KOLOMMEN.items():
+    for variabele, mbo_status, noot in velden:
+        rijen.append({
+            "Categorie": categorie,
+            "Variabele": variabele,
+            "1cijferHO": "✅",
+            "MBO-data": mbo_status,
+            "Noot": noot,
+        })
+
+df = pd.DataFrame(rijen)
+print(f"Totaal: {len(df)} variabelen — "
+      f"{(df['MBO-data']=='✅').sum()} aanwezig, "
+      f"{(df['MBO-data']=='⚠️').sum()} deels, "
+      f"{(df['MBO-data']=='❌').sum()} ontbrekend")
+
+for categorie, groep in df.groupby("Categorie", sort=False):
+    display(HTML(f"<h4>{categorie}</h4>"))
+    tabel = groep[["Variabele", "1cijferHO", "MBO-data", "Noot"]].reset_index(drop=True)
+    display(tabel.style.hide(axis="index"))
+```
+
+---
+
+## Dimensie-analyse
+
+### 1. Kansengelijkheid
+
+Kansengelijkheidanalyse vereist inzicht in achtergrondkenmerken van studenten: herkomst, nationaliteit, sociaaleconomische positie en geografische spreiding. Deze dimensie is in 1cijferHO sterk gedekt dankzij de herkomstvariabelen (nationaliteit, geboorteland ouders, etniciteit, generatie, CBS-herkomstindeling) en postcode.
+
+In de MBO-bestanden zijn **vrijwel alle herkomstvariabelen afwezig**. Geslacht en vooropleiding bieden een minimale basis voor subgroepanalyse, maar voor herkomstgerelateerde ongelijkheid — de kern van kansengelijkheidonderzoek — ontbreekt het fundament.
+
+**Essentiële variabelen aanwezig ✅**
+
+- Geslacht (H15/H17)
+- Vooropleiding niveau (H15/H17)
+- Leeftijd (H16/H17 direct; H15 afleidbaar)
+- Inschrijving start/eind, uitschrijving reden
+
+**Essentiële variabelen ontbrekend ❌**
+
+- EER-indicator, nationaliteit, geboorteland ouders
+- Etniciteit, generatie, herkomstindeling CBS
+- Postcode student (geografische spreiding)
+- VO-eindcijfer (instroomkwaliteit per groep)
+
+---
+
+### 2. Toegangsbeleid
+
+Toegangsbeleid draait om de vraag welke studenten instromen, met welke achtergrond en prestaties, en of het instroomproces gelijkwaardig toegankelijk is. Centrale variabelen zijn vooropleiding (type én niveau), VO-eindcijfer, en eerstejaars-indicatoren.
+
+De MBO-bestanden leveren globale vooropleidingsinformatie (niveau H15/H17) en leertraject (BOL/BBL), maar missen de detaillering die selectiviteitsanalyse mogelijk maakt. Met name het ontbreken van VO-eindcijfer en diplomajaar vooropleiding maakt het onmogelijk om instroomkwaliteit over tijd of per opleiding te analyseren.
+
+**Essentiële variabelen aanwezig ✅**
+
+- Vooropleiding niveau (H15/H17)
+- Leertraject BOL/BBL
+- Opleidingscode (CREBO)
+- Leeftijd bij inschrijving
+
+**Essentiële variabelen ontbrekend ❌**
+
+- VO-eindcijfer
+- Diplomajaar en instelling vooropleiding
+- Eerstejaars-indicator (niet standaard geleverd)
+- Gedetailleerde vooropleidingscode (DUO-codering)
+
+---
+
+### 3. Studentstromen & student journey
+
+Student journey-analyse volgt studenten over meerdere inschrijvingen, opleidingen en instellingen. Dit vereist longitudinale data: verblijfsjaar, eerstejaars-indicator, uitschrijvingsredenen, en idealiter koppeling tussen MBO en HO.
+
+De MBO-bestanden bevatten inschrijvingshistoriek (start, eind, reden) en diplomagegevens — voldoende voor uitvalanalyse binnen één levering. Verblijfsjaar is alleen beschikbaar via H16 (`AantalBekostigdeVerblijfsjarenMBO`). Eerstejaars-indicatoren en cross-sectorale doorstroom (MBO→HO) ontbreken volledig. Longitudinale analyse vereist meerdere opeenvolgende leveringen.
+
+**Essentiële variabelen aanwezig ✅**
+
+- Inschrijving start/eind, uitschrijving reden
+- Heeft diploma (DIP-record)
+- Diplomadatum (afleidbaar)
+- Verblijfsjaar MBO (H16 only)
+- Leertraject, opleidingscode
+
+**Essentiële variabelen ontbrekend ❌**
+
+- Verblijfsjaar (H15/H17 — alleen H16)
+- Eerstejaars-indicator (niet standaard)
+- Koppeling MBO→HO doorstroom
+- Postcode (geografische mobiliteit)
+
+---
+
+### 4. Vooropleidingen & doorstroom
+
+Analyse van instroomprofielen per vooropleidingstype — en hoe studenten met verschillende achtergronden presteren — vereist gedetailleerde vooropleidingsinformatie: type, niveau, diplomajaar, instelling en behaald eindcijfer.
+
+De MBO-bestanden leveren via GEO-records een globale categorisering (niveau: MBO/VMBO/HAVO/VWO, H15/H17). H16 mist deze records volledig. De DUO-codering voor vooropleidingstype (nodig voor uitsplitsing MBO 1-2 vs 3-4, VMBO-BB vs TL, etc.) is niet beschikbaar. VO-eindcijfer, diplomajaar en instelling van de vooropleiding ontbreken in alle drie formaten.
+
+**Essentiële variabelen aanwezig ✅**
+
+- Vorig onderwijs niveau (H15/H17)
+- Vorig onderwijs graad (H15/H17, betekenis deels onduidelijk)
+
+**Essentiële variabelen ontbrekend ❌**
+
+- Gedetailleerde DUO-vooropleidingscode (uitsplitsing binnen categorieën)
+- Diplomajaar vooropleiding
+- Instelling vooropleiding
+- VO-eindcijfer
+- Vooropleiding binnen MBO (hoogste vooropleiding binnen sector)
