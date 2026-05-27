@@ -57,8 +57,8 @@ from IPython.display import display, HTML
 KOLOMMEN = {
     "Persoonskenmerken": [
         ("Burgerservicenummer", "✅", ""),
-        ("Onderwijsnummer", "❌", ""),
-        ("Persoonsgebonden nummer", "❌", "Niet aanwezig in MBO-leveringen"),
+        ("Onderwijsnummer", "⚠️", "H15/H16: OWN aanwezig als alternatief voor BSN (per student BSN óf OWN)"),
+        ("Persoonsgebonden nummer", "⚠️", "H17: PGN = gepseudonimiseerd equivalent (BSN/OWN omgenummerd)"),
         ("Geslacht", "⚠️", "H15/H17 wel, H16 niet"),
         ("Leeftijd per peildatum 1 oktober", "⚠️", "H16/H17 direct beschikbaar; H15 afleidbaar via geboortedatum"),
         ("Leeftijd per 1 januari", "❌", ""),
@@ -73,13 +73,13 @@ KOLOMMEN = {
         ("Geboorteland ouder 2", "⚠️", "H17 PER-record; H15/H16 niet"),
         ("Etniciteit", "❌", ""),
         ("Generatie", "❌", ""),
-        ("Herkomstland volgens CBS-definitie", "❌", ""),
-        ("Herkomst-indikking volgens CBS-definitie", "❌", ""),
-        ("Indicatie EER actueel", "❌", ""),
-        ("Indicatie internationale student", "❌", ""),
-        ("Indicatie EER op peildatum 1 oktober", "❌", ""),
-        ("Nationaliteit gebruikt voor bepaling ind. EER actueel", "❌", ""),
-        ("Nationaliteit gebruikt voor bepaling ind. EER peildatum", "❌", ""),
+        ("Herkomstland volgens CBS-definitie", "⚠️", "Afleidbaar via CBS-herkomstalgoritme uit geboorteland + ouderslanden (H17)"),
+        ("Herkomst-indikking volgens CBS-definitie", "⚠️", "Afleidbaar via CBS-herkomstindeling uit geboorteland + ouderslanden (H17); etniciteit zelf niet aanwezig"),
+        ("Indicatie EER actueel", "⚠️", "Afleidbaar uit nationaliteit 1/2 (H17) met EER-landenlijst"),
+        ("Indicatie internationale student", "⚠️", "Benadering: niet-Nederlandse nationaliteit afleidbaar uit nationaliteit 1/2 (H17)"),
+        ("Indicatie EER op peildatum 1 oktober", "⚠️", "Afleidbaar uit nationaliteit 1/2 (H17) met EER-landenlijst"),
+        ("Nationaliteit gebruikt voor bepaling ind. EER actueel", "⚠️", "Nationaliteit 1/2 beschikbaar (H17)"),
+        ("Nationaliteit gebruikt voor bepaling ind. EER peildatum", "⚠️", "Nationaliteit 1/2 beschikbaar (H17)"),
     ],
     "Inschrijving": [
         ("Inschrijvingsjaar", "✅", "Afleidbaar uit datum inschrijving"),
@@ -91,7 +91,7 @@ KOLOMMEN = {
         ("Code bekostiging", "⚠️", "H16: IndicatieBekostigbaar + Bekostigingsstatus"),
         ("Inschrijvingsvorm", "⚠️", "Leertraject BOL/BBL beschikbaar; niet exact equivalent"),
         ("Indicatie actief op peildatum", "⚠️", "Afleidbaar: student actief als datum inschrijving ≤ peildatum ≤ datum uitschrijving"),
-        ("Indicatie soort programma", "❌", ""),
+        ("Indicatie soort programma", "⚠️", "MBO equivalent: Leertraject (BOL/BBL/OVO/EX/ODT) — deeltijd, voltijd, extraneus onderscheid aanwezig"),
         ("Soort inschrijving hoger onderwijs", "❌", ""),
         ("Soort inschrijving soort ho", "❌", ""),
         ("Soort inschrijving type ho binnen soort ho", "❌", ""),
@@ -111,15 +111,15 @@ KOLOMMEN = {
         ("Actuele instelling vóór besturenfusies", "❌", ""),
         ("Opleidingscode", "⚠️", "CREBO-code aanwezig; andere codering dan CROHO — sectorMapping vereist"),
         ("Opleidingsvorm", "⚠️", "Leertraject BOL/BBL beschikbaar; niet exact equivalent aan HO-opleidingsvorm"),
-        ("Opleidingsfase", "❌", "HO-specifiek (B/M/A); MBO gebruikt niveau 1-4"),
-        ("Opleidingsfase actueel", "❌", ""),
+        ("Opleidingsfase", "⚠️", "MBO equivalent: MBO-niveau 1-4 (ISP/Teldatum) — onderscheidt studieniveaus zoals B/M/A in HO"),
+        ("Opleidingsfase actueel", "⚠️", "MBO equivalent: MBO-niveau 1-4"),
         ("Soort hoger onderwijs", "❌", "HO-specifiek (WO/HBO); niet van toepassing op MBO"),
         ("Type hoger onderwijs binnen soort hoger onderwijs", "❌", ""),
         ("Opleiding actueel equivalent", "❌", ""),
         ("Opleiding historisch equivalent", "❌", ""),
-        ("Croho-onderdeel actuele opleiding", "❌", "MBO gebruikt CREBO; CROHO is HO-sectorindeling"),
-        ("Croho-subonderdeel actuele opleiding", "❌", ""),
-        ("ISCEDF2013-rubriek", "❌", ""),
+        ("Croho-onderdeel actuele opleiding", "⚠️", "MBO equivalent: CREBO-sector via sectorMapping (Techniek/Economie/Gezondheidszorg/etc. — DUO open data)"),
+        ("Croho-subonderdeel actuele opleiding", "⚠️", "MBO equivalent: CREBO-subsector via mapping (beperktere granulariteit dan CROHO)"),
+        ("ISCEDF2013-rubriek", "⚠️", "Afleidbaar via CREBO-naar-ISCED crosswalk (DUO/OECD mapping beschikbaar)"),
         ("Indicatie University College", "❌", "HO-specifiek"),
         ("Vestigingsnummer", "⚠️", "Locatiecode VSV (NHR-vestigingsnummer) aanwezig in ISP-record H15/H17; niet geëxtraheerd in huidige parsers"),
         ("Vestigingsnummer actueel", "⚠️", "Zie Locatiecode VSV"),
@@ -133,8 +133,8 @@ KOLOMMEN = {
         ("Soort diploma hoger onderwijs", "❌", ""),
         ("Soort diploma soort hoger onderwijs", "❌", ""),
         ("Soort diploma instelling", "❌", ""),
-        ("Code examenresultaat", "❌", ""),
-        ("Maand examenresultaat", "❌", ""),
+        ("Code examenresultaat", "⚠️", "MBO equivalent: heeft_diploma (J/N) — binair resultaat; geen uitgebreide resultaatcodes"),
+        ("Maand examenresultaat", "⚠️", "Afleidbaar uit diploma_datum (DIP-record aanwezig in H15/H16/H17)"),
         ("Vestigingsnummer diploma", "❌", ""),
         ("Vestigingsnummer van de hoogste vooropl. vóór het HO", "❌", ""),
         ("Vestigingsnummer van de hoogste vooropl. binnen het HO", "❌", ""),
@@ -168,20 +168,20 @@ KOLOMMEN = {
         ("Verblijfsjaar continu soort ho", "❌", ""),
         ("Verblijfsjaar continu actuele instelling", "❌", ""),
         ("Verblijfsjaar continu type ho binnen ho", "❌", ""),
-        ("Indicatie eerstejaars opl. actueel equivalent", "❌", ""),
-        ("Indicatie eerstejaars actuele instelling", "❌", "Niet standaard geleverd; deels afleidbaar"),
-        ("Indicatie eerstejaars actuele opl.-instelling", "❌", ""),
-        ("Indicatie eerstejaars continu hoger onderwijs", "❌", ""),
-        ("Indicatie eerstejaars continu soort ho", "❌", ""),
-        ("Indicatie eerstejaars continu actuele instelling", "❌", ""),
-        ("Indicatie eerstejaars continu type ho binnen ho", "❌", ""),
-        ("Indicatie eerstejrs act. inst - type ho binnen soort ho", "❌", ""),
-        ("Eerste jaar in het hoger onderwijs", "❌", ""),
-        ("Eerste jaar aan deze instelling", "❌", ""),
-        ("Eerste jaar aan deze soort hoger onderwijs", "❌", ""),
-        ("Eerste jaar aan deze opleiding-instelling", "❌", ""),
-        ("Gecorrigeerd eerste jaar aan deze instelling", "❌", ""),
-        ("Eerste jaar aan deze actuele instelling", "❌", ""),
+        ("Indicatie eerstejaars opl. actueel equivalent", "⚠️", "Afleidbaar: student is eerstejaars als inschrijving_start in cohortjaar valt (vereist longitudinale data voor zekerheid)"),
+        ("Indicatie eerstejaars actuele instelling", "⚠️", "Afleidbaar uit inschrijving_start bij BRIN (longitudinale data verhoogt betrouwbaarheid)"),
+        ("Indicatie eerstejaars actuele opl.-instelling", "⚠️", "Afleidbaar uit eerste ISP-datum per opleidingscode + BRIN"),
+        ("Indicatie eerstejaars continu hoger onderwijs", "❌", "HO-specifiek (continuïteitsmeting over sectoren heen)"),
+        ("Indicatie eerstejaars continu soort ho", "❌", "HO-specifiek"),
+        ("Indicatie eerstejaars continu actuele instelling", "❌", "HO-specifiek continuïteitsbegrip"),
+        ("Indicatie eerstejaars continu type ho binnen ho", "❌", "HO-specifiek"),
+        ("Indicatie eerstejrs act. inst - type ho binnen soort ho", "❌", "HO-specifiek"),
+        ("Eerste jaar in het hoger onderwijs", "⚠️", "Equivalent: eerste jaar in MBO, afleidbaar uit vroegste inschrijving_start"),
+        ("Eerste jaar aan deze instelling", "⚠️", "Afleidbaar uit inschrijving_start bij BRIN"),
+        ("Eerste jaar aan deze soort hoger onderwijs", "❌", "HO-specifiek (soort HO: WO/HBO)"),
+        ("Eerste jaar aan deze opleiding-instelling", "⚠️", "Afleidbaar uit vroegste ISP-datum per opleidingscode + BRIN"),
+        ("Gecorrigeerd eerste jaar aan deze instelling", "❌", "HO-specifieke correctie voor onderbrekingen"),
+        ("Eerste jaar aan deze actuele instelling", "⚠️", "Afleidbaar uit inschrijving_start bij actueel BRIN"),
     ],
     "Postcode & geografie": [
         ("Postcodecijfers student op 1 oktober", "⚠️", "H17 PER-record (4 cijfers, incl. buitenlandcodes 0010–0040); H15/H16 niet"),
@@ -208,16 +208,17 @@ KOLOMMEN = {
 
 SAMENVATTING = {
     "Persoonskenmerken": (
-        "BSN aanwezig in H15; geslacht in H15/H17, ontbreekt in H16. "
-        "Geboortedatum beschikbaar in H15 (volledige datum, exacte leeftijdsberekening mogelijk); "
+        "BSN aanwezig in H15/H16; OWN als alternatief identifier ook aanwezig. "
+        "H17 levert PGN (gepseudonimiseerd equivalent). "
+        "Geboortedatum beschikbaar in H15 (volledige datum, exacte leeftijdsberekening); "
         "H16/H17 leveren alleen integer-leeftijd op peildatum. "
-        "PGN (gepseudonimiseerd BSN) uitsluitend in H17 — H15/H16 gebruiken het echte BSN."
+        "Geslacht aanwezig in H15/H17, ontbreekt in H16."
     ),
     "Herkomst & nationaliteit": (
-        "Geboorteland en nationaliteit (H17 PER-record) beschikbaar als basis voor herkomstanalyse. "
-        "EER-indicator, etniciteit, generatie en CBS-herkomstindeling ontbreken volledig — "
-        "ongelijkheid naar herkomst niet volledig meetbaar. "
-        "Verblijfstitel (H17) is een indirecte proxy voor verblijfsstatus."
+        "Geboorteland, ouderslanden en nationaliteit (H17) aanwezig. "
+        "EER-indicator afleidbaar uit nationaliteit met EER-landenlijst. "
+        "CBS-herkomstindeling afleidbaar via CBS-algoritme uit geboorteland + ouderslanden. "
+        "Etniciteit en generatie zijn niet afleidbaar en ontbreken volledig."
     ),
     "Inschrijving": (
         "Kernvariabelen aanwezig: datum inschrijving/uitschrijving, reden uitschrijving, leertraject (BOL/BBL). "
@@ -225,9 +226,10 @@ SAMENVATTING = {
         "Alle HO-specifieke inschrijvingssoorten (WO, HBO, voltijd/deeltijd type) zijn niet van toepassing op MBO."
     ),
     "Opleiding & instelling": (
-        "BRIN en CREBO-opleidingscode aanwezig; sectorindeling vereist externe CREBO-mapping (DUO open data). "
-        "Vestigingsnummer (Locatiecode VSV) staat in de ISP-bronrecords maar is niet geëxtraheerd in de parsers. "
-        "CROHO-sectorindeling en HO-specifieke opleidingstypen zijn niet van toepassing op MBO."
+        "BRIN, CREBO-opleidingscode en MBO-niveau 1-4 aanwezig. "
+        "CREBO-sector en ISCED-rubriek afleidbaar via externe mappings (DUO/OECD open data). "
+        "Vestigingsnummer (Locatiecode VSV) staat in ISP-bronrecords maar is niet geëxtraheerd. "
+        "HO-specifieke types (WO/HBO, University College) zijn niet van toepassing op MBO."
     ),
     "Diploma & resultaat": (
         "Diplomastatus (J/N) en diplomadatum aanwezig in alle formaten. "
@@ -241,10 +243,10 @@ SAMENVATTING = {
         "Instroomkwaliteit naar vooropleidingsniveau is niet meetbaar met MBO-data."
     ),
     "Verblijfsjaar & eerstejaars": (
-        "Alle verblijfsjaartypen ontbreken als standaard veld. "
-        "AantalBekostigdeVerblijfsjarenMBO (H16) is deprecated per 01-10-2018 en levert geen bruikbare waarden. "
-        "Met meerdere opeenvolgende leveringen (longitudinaal) is verblijfsjaar per opleiding afleidbaar "
-        "via het verschil tussen eerste inschrijving en peildatum."
+        "Verblijfsjaar als standaard veld ontbreekt (AantalBekostigdeVerblijfsjarenMBO deprecated per 2018). "
+        "Eerstejaars-indicator en 'eerste jaar aan instelling/opleiding' zijn afleidbaar uit inschrijving_start. "
+        "HO-specifieke continuïteitsberekeningen (continu HO, soort HO) zijn niet van toepassing. "
+        "Longitudinale data verhoogt betrouwbaarheid van eerstejaars-derivaties."
     ),
     "Postcode & geografie": (
         "Alleen 4-cijferig postcode via H17 PER-record. "
