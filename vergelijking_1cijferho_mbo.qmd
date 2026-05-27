@@ -44,7 +44,7 @@ Dit rapport vergelijkt de variabelen uit het **1cijferHO EV-bestand** (115 kolom
 
 > ⚠️-noot H15/H17: variabele aanwezig in H15 en H17, maar **niet in H16** (TBG-i XML).
 
-> **VAKHAVW**: apart 1cijferHO-bestand met per-vak havo/vwo examenscores van studenten. Bevat geen equivalent in MBO-leveringen — MBO-studenten hebben geen VO-vakkenhistorie in de MBO-bestanden. Het MBO kent wel eigen examenonderdelen (rekenen/Nederlands via GEO-records), maar die staan in de MBO-extra sectie hieronder.
+> **VAKHAVW**: apart 1cijferHO-bestand met per-vak havo/vwo examenscores. MBO-studenten hebben geen VO-vakkenhistorie, maar MBO-formaten bevatten wel examencijfers voor de generieke examenonderdelen (GEO: Nederlands, Rekenen, Engels) met IE-, CE- en eindcijfer — structureel vergelijkbaar (⚠️). **Analytisch onderscheid:** VAKHAVW = VO-prestaties als instroomkwaliteitmaatstaf vóór het MBO; GEO = prestaties ínnerhalb het MBO-programma (uitkomstmaatstaf). Een ⚠️ in de VAKHAVW-sectie betekent: structureel equivalent beschikbaar, maar andere meetcontext.
 
 ---
 
@@ -90,7 +90,7 @@ KOLOMMEN = {
         ("Code beëindiging", "✅", ""),
         ("Code bekostiging", "⚠️", "H16: IndicatieBekostigbaar + Bekostigingsstatus"),
         ("Inschrijvingsvorm", "⚠️", "Leertraject BOL/BBL beschikbaar; niet exact equivalent"),
-        ("Indicatie actief op peildatum", "❌", "Niet standaard geleverd in MBO-formaten"),
+        ("Indicatie actief op peildatum", "⚠️", "Afleidbaar: student actief als datum inschrijving ≤ peildatum ≤ datum uitschrijving"),
         ("Indicatie soort programma", "❌", ""),
         ("Soort inschrijving hoger onderwijs", "❌", ""),
         ("Soort inschrijving soort ho", "❌", ""),
@@ -121,9 +121,9 @@ KOLOMMEN = {
         ("Croho-subonderdeel actuele opleiding", "❌", ""),
         ("ISCEDF2013-rubriek", "❌", ""),
         ("Indicatie University College", "❌", "HO-specifiek"),
-        ("Vestigingsnummer", "❌", "Niet geëxtraheerd in huidige parsers"),
-        ("Vestigingsnummer actueel", "❌", ""),
-        ("Vestigingsnummer actueel diploma", "❌", ""),
+        ("Vestigingsnummer", "⚠️", "Locatiecode VSV (NHR-vestigingsnummer) aanwezig in ISP-record H15/H17; niet geëxtraheerd in huidige parsers"),
+        ("Vestigingsnummer actueel", "⚠️", "Zie Locatiecode VSV"),
+        ("Vestigingsnummer actueel diploma", "❌", "DIP-record heeft geen vestigingsnummer; wel Onderwijsaanbieder (RIO-code)"),
     ],
     "Diploma & resultaat": [
         ("Diplomajaar", "⚠️", "Diplomadatum aanwezig in DIP-record; jaar afleidbaar"),
@@ -187,23 +187,78 @@ KOLOMMEN = {
         ("Postcodecijfers student op 1 oktober", "⚠️", "H17 PER-record (4 cijfers, incl. buitenlandcodes 0010–0040); H15/H16 niet"),
     ],
     "VAKHAVW — VO-examengegevens per vak (apart 1cijferHO-bestand)": [
-        ("Brinnummer VO-instelling", "❌", "Instelling waar havo/vwo-diploma is behaald"),
+        ("Brinnummer VO-instelling", "❌", "Instelling waar havo/vwo-diploma is behaald — geen VO-instellingsinfo in MBO-bestanden"),
         ("Vestigingsnummer VO-vestiging", "❌", ""),
-        ("Gemiddeld cijfer cijferlijst (VO)", "❌", "Gewogen gemiddeld eindcijfer havo/vwo"),
-        ("Vakcode", "❌", "Vakcode per vak (bijv. wiskunde A, Nederlands)"),
-        ("Afkorting vak", "❌", ""),
-        ("Ander niveau (vak)", "❌", "Indicatie of vak op afwijkend niveau is afgelegd"),
-        ("Indicatie diplomavak", "❌", ""),
-        ("Cijfer schoolexamen", "❌", "Schoolexamencijfer per vak"),
-        ("Beoordeling schoolexamen", "❌", ""),
-        ("Cijfer eerste centraal examen", "❌", ""),
-        ("Cijfer tweede centraal examen", "❌", "Herexamen"),
+        ("Gemiddeld cijfer cijferlijst (VO)", "❌", "Gewogen gemiddeld eindcijfer havo/vwo — geen geaggregeerd GEO-gemiddelde in MBO"),
+        ("Vakcode", "⚠️", "MBO equivalent: Code generiek examenonderdeel (GEO) — beperkt tot Nederlands, Rekenen, Engels"),
+        ("Afkorting vak", "❌", "GEO gebruikt numerieke codes (3001–3018), geen tekstafkortingen"),
+        ("Ander niveau (vak)", "❌", "GEO kent geen niveau-afwijking per onderdeel"),
+        ("Indicatie diplomavak", "❌", "Geen equivalent in GEO-structuur"),
+        ("Cijfer schoolexamen", "⚠️", "MBO equivalent: GEO cijfer IE (instellingsexamen) voor Nederlands/Rekenen/Engels"),
+        ("Beoordeling schoolexamen", "❌", "Geen kwalitatieve beoordeling in GEO"),
+        ("Cijfer eerste centraal examen", "⚠️", "MBO equivalent: GEO cijfer CE (centraal examen) voor generieke examenonderdelen"),
+        ("Cijfer tweede centraal examen", "❌", "Herexamen — GEO legt geen meerdere CE-pogingen vast"),
         ("Cijfer derde centraal examen", "❌", ""),
-        ("Eerste eindcijfer", "❌", "Eindcijfer na weging SE/CE"),
-        ("Tweede eindcijfer", "❌", ""),
+        ("Eerste eindcijfer", "⚠️", "MBO equivalent: GEO eindcijfer per generiek examenonderdeel (weging IE/CE)"),
+        ("Tweede eindcijfer", "❌", "Herexamen eindcijfer — geen equivalent in GEO"),
         ("Derde eindcijfer", "❌", ""),
-        ("Cijfer cijferlijst", "❌", "Definitief cijfer op de cijferlijst"),
+        ("Cijfer cijferlijst", "⚠️", "MBO equivalent: GEO eindcijfer (definitief cijfer per examenonderdeel)"),
     ],
+}
+
+SAMENVATTING = {
+    "Persoonskenmerken": (
+        "BSN aanwezig in H15; geslacht in H15/H17, ontbreekt in H16. "
+        "Geboortedatum beschikbaar in H15 (volledige datum, exacte leeftijdsberekening mogelijk); "
+        "H16/H17 leveren alleen integer-leeftijd op peildatum. "
+        "PGN (gepseudonimiseerd BSN) uitsluitend in H17 — H15/H16 gebruiken het echte BSN."
+    ),
+    "Herkomst & nationaliteit": (
+        "Geboorteland en nationaliteit (H17 PER-record) beschikbaar als basis voor herkomstanalyse. "
+        "EER-indicator, etniciteit, generatie en CBS-herkomstindeling ontbreken volledig — "
+        "ongelijkheid naar herkomst niet volledig meetbaar. "
+        "Verblijfstitel (H17) is een indirecte proxy voor verblijfsstatus."
+    ),
+    "Inschrijving": (
+        "Kernvariabelen aanwezig: datum inschrijving/uitschrijving, reden uitschrijving, leertraject (BOL/BBL). "
+        "Indicatie actief op peildatum is afleidbaar uit de datumvelden. "
+        "Alle HO-specifieke inschrijvingssoorten (WO, HBO, voltijd/deeltijd type) zijn niet van toepassing op MBO."
+    ),
+    "Opleiding & instelling": (
+        "BRIN en CREBO-opleidingscode aanwezig; sectorindeling vereist externe CREBO-mapping (DUO open data). "
+        "Vestigingsnummer (Locatiecode VSV) staat in de ISP-bronrecords maar is niet geëxtraheerd in de parsers. "
+        "CROHO-sectorindeling en HO-specifieke opleidingstypen zijn niet van toepassing op MBO."
+    ),
+    "Diploma & resultaat": (
+        "Diplomastatus (J/N) en diplomadatum aanwezig in alle formaten. "
+        "Geen gedetailleerd examenresultaat (cumlaude, cijfer). "
+        "HO-specifieke diplomasoorten en opleidingsfases zijn niet van toepassing op MBO."
+    ),
+    "Vooropleiding": (
+        "Volledig ontbrekend in H15, H16 en H17. "
+        "GEO-records bevatten MBO-examencijfers voor rekenen/Nederlands/Engels — "
+        "dit zijn resultaten binnen MBO, géén informatie over de vooropleiding van de student. "
+        "Instroomkwaliteit naar vooropleidingsniveau is niet meetbaar met MBO-data."
+    ),
+    "Verblijfsjaar & eerstejaars": (
+        "Alle verblijfsjaartypen ontbreken als standaard veld. "
+        "AantalBekostigdeVerblijfsjarenMBO (H16) is deprecated per 01-10-2018 en levert geen bruikbare waarden. "
+        "Met meerdere opeenvolgende leveringen (longitudinaal) is verblijfsjaar per opleiding afleidbaar "
+        "via het verschil tussen eerste inschrijving en peildatum."
+    ),
+    "Postcode & geografie": (
+        "Alleen 4-cijferig postcode via H17 PER-record. "
+        "Buitenlandcodes: 0010=België, 0020=Duitsland, 0030=ander land, 0040=geen vast adres. "
+        "Niet aanwezig in H15 of H16."
+    ),
+    "VAKHAVW — VO-examengegevens per vak (apart 1cijferHO-bestand)": (
+        "MBO heeft geen VO-examengeschiedenis per vak. "
+        "Structureel equivalent beschikbaar via GEO-records (H15/H17): IE-cijfer, CE-cijfer en eindcijfer "
+        "voor de verplichte examenonderdelen Nederlands (2F/3F), Rekenen en Engels. "
+        "Analytisch onderscheid: VAKHAVW = VO-prestaties als instroomkwaliteitmaatstaf (vóór het MBO); "
+        "GEO = prestaties binnen het MBO-programma (uitkomstmaatstaf). "
+        "Gebruik de ⚠️-velden voor structurele vergelijking; houd rekening met het andere meetmoment."
+    ),
 }
 
 rijen = []
@@ -225,6 +280,8 @@ print(f"Totaal: {len(df)} variabelen — "
 
 for categorie, groep in df.groupby("Categorie", sort=False):
     display(HTML(f"<h4>{categorie}</h4>"))
+    if categorie in SAMENVATTING:
+        display(HTML(f"<p><em>{SAMENVATTING[categorie]}</em></p>"))
     tabel = groep[["Variabele", "1cijferHO", "MBO-data", "Noot"]].reset_index(drop=True)
     display(tabel.style.hide(axis="index"))
 ```
@@ -404,28 +461,29 @@ De beschikbaarheid van de drie MBO-formaten verschilt sterk. Dit heeft directe g
 
 ### 1. Kansengelijkheid
 
-**Uitvoerbaarheid: 🔴 Niet uitvoerbaar met huidige MBO-data**
+**Uitvoerbaarheid: 🟡 Beperkt uitvoerbaar**
 
-Kansengelijkheidsanalyse vereist inzicht in de achtergrondkenmerken van studenten: herkomst, nationaliteit, sociaaleconomische positie en geografische spreiding. In 1cijferHO zijn deze gedekt via nationaliteit, geboorteland ouders, etniciteit, generatie, CBS-herkomstindeling en postcode. In de MBO-bestanden ontbreken al deze variabelen.
+Kansengelijkheidsanalyse vereist achtergrondkenmerken: herkomst, nationaliteit, sociaaleconomische positie, geografische spreiding. In 1cijferHO zijn deze gedekt via etniciteit, generatie, CBS-herkomstindeling en postcode. In de MBO-bestanden zijn basisvariabelen aanwezig (geboorteland, nationaliteit, postcode via H17), maar de verfijnde categorieën ontbreken.
 
-Geslacht en vooropleiding bieden een minimale basis voor subgroepvergelijking, maar voor de kern van kansengelijkheidonderzoek — ongelijkheid naar herkomst en sociaaleconomische achtergrond — ontbreekt het fundament volledig. De uitnodigingsregel en student-signal library kunnen in principe subgroepanalyses uitvoeren, maar hebben dan herkomstvariabelen als input nodig die niet beschikbaar zijn.
+Geslacht, leeftijd, herkomst (H17) en postcode bieden een substantiële basis voor subgroepvergelijking. Analyses naar geslacht, leeftijd en globale herkomst zijn uitvoerbaar. De diepere lagen — etniciteit, CBS-herkomstindeling, generatie, EER-status, sociaaleconomische positie — zijn niet beschikbaar. Over VO-eindcijfer als instroomkwaliteitsmaatstaf: dit is een VO-prestatiemaatstaf *vóór* de MBO-inschrijving en is inderdaad niet aanwezig. MBO heeft wel GEO-examencijfers (rekenen/Nederlands/Engels) als prestatiemaatstaf *binnen* het MBO — dit zijn uitkomstvariabelen, geen instroomvariabelen.
 
-**Wat wordt mogelijk met longitudinale data:** Tijdreeksanalyse op uitvalverschillen naar geslacht over cohorten. Herkomstanalyse blijft beperkt: geboorteland en nationaliteit zijn alleen in H17 beschikbaar (gepseudonimiseerd), etniciteit en CBS-herkomstindeling ontbreken volledig.
+**Wat wordt mogelijk met longitudinale data:** Tijdreeksanalyse op uitvalverschillen naar geslacht, leeftijd en herkomst over cohorten.
 
 **Essentiële variabelen aanwezig ✅**
 
 - Geslacht (H15/H17)
-- Leeftijd (H16/H17 direct; H15 afleidbaar)
+- Leeftijd (H16/H17 direct; H15 afleidbaar via geboortedatum)
 - Geboorteland student + ouders (H17)
 - Nationaliteit 1 en 2 (H17)
 - Postcode (H17, 4 cijfers)
+- MBO-examencijfers rekenen/Nederlands/Engels (GEO, H15/H17) — uitkomstmaat, niet instroomkwaliteit
 
 **Essentiële variabelen ontbrekend ❌**
 
-- Vooropleiding: **niet beschikbaar** in H15/H16/H17 (GEO-records = examenonderdelen, geen vooropleidingsdata)
+- Vooropleiding: **niet beschikbaar** in H15/H16/H17 (GEO = MBO-examenonderdelen, geen vooropleidingsdata)
+- VO-eindcijfer als instroomkwaliteitsmaatstaf: niet aanwezig — GEO meet prestaties binnen MBO, niet instroomprestaties
 - EER-indicator, nationaliteit 3
-- Etniciteit, generatie, herkomstindeling CBS
-- VO-eindcijfer (instroomkwaliteit per achtergrondgroep)
+- Etniciteit, generatie, herkomstindeling CBS, verblijfstitel (proxy beschikbaar H17)
 
 ---
 
@@ -433,11 +491,11 @@ Geslacht en vooropleiding bieden een minimale basis voor subgroepvergelijking, m
 
 **Uitvoerbaarheid: 🟡 Beperkt uitvoerbaar**
 
-Toegangsbeleid draait om de vraag welke studenten instromen, met welke achtergrond en voorbereiding. Globale vooropleidingscategorieën (MBO/VMBO/HAVO/VWO via H15/H17) en leertraject (BOL/BBL) zijn beschikbaar. Hiermee zijn instroomprofielen op hoofdlijnen te beschrijven.
+Toegangsbeleid draait om de vraag welke studenten instromen, met welke achtergrond en voorbereiding. Leertraject (BOL/BBL) en MBO-kwalificatieniveau zijn beschikbaar. Hiermee zijn instroomprofielen op hoofdlijnen te beschrijven. Prestatiemaatstaf binnen MBO is beschikbaar via GEO-examencijfers (rekenen/Nederlands/Engels), maar dit zijn uitkomstvariabelen, niet instroomkwaliteitsmaatstaven.
 
-Wat ontbreekt is de diepgang: VO-eindcijfer maakt het onmogelijk om instroomkwaliteit te meten of te vergelijken met selectiedrempels. Zonder diplomajaar en instelling van de vooropleiding is evenmin te bepalen hoe recent en relevant de vooropleiding was. De uitnodigingsregel gebruikt `VooroplNiveau_*` als feature — die is met de MBO-data globaal te reconstrueren, maar de subtypen (VMBO-BB/KB/GL/TL, MBO 1/2/3/4) zijn niet te onderscheiden zonder de gedetailleerde DUO-codering.
+VO-eindcijfer als instroomkwaliteitsmaatstaf — het gemiddeld VO-diplomacijfer dat studenten meebrengen — is niet aanwezig in MBO-leveringen. Dit is een fundamentele beperking voor selectiviteitsanalyse. Vooropleiding (niveau en type) is eveneens volledig afwezig; instroomprofielen zijn daarmee niet te maken. Eerstejaars-indicator is afleidbaar uit het verschil tussen eerste bekende ISG-datum en peildatum wanneer meerdere leveringen beschikbaar zijn.
 
-**Wat wordt mogelijk met longitudinale data:** Instroomtrends per vooropleidingstype over meerdere cohorten; analyse van wie op welk moment in- en uitstroomt per opleiding.
+**Wat wordt mogelijk met longitudinale data:** Instroomtrends per BRIN, opleiding en leertraject over cohorten; benadering van eerstejaars-indicator.
 
 **Essentiële variabelen aanwezig ✅**
 
@@ -445,13 +503,14 @@ Wat ontbreekt is de diepgang: VO-eindcijfer maakt het onmogelijk om instroomkwal
 - MBO-kwalificatieniveau 1-4 (H15/H16/H17 via ISP/Teldatum)
 - Opleidingscode CREBO, leeftijd bij inschrijving
 - Uitschrijvingsreden, diplomastatus
+- GEO-examencijfers rekenen/Nederlands/Engels (H15/H17) — prestatie binnen MBO
 
 **Essentiële variabelen ontbrekend ❌**
 
-- Vooropleiding niveau: **niet beschikbaar** in MBO-leveringen (zie dimensie 4)
-- VO-eindcijfer (instroomkwaliteitsmaatstaf)
+- Vooropleiding niveau en type: **niet beschikbaar** in MBO-leveringen (zie dimensie 4)
+- VO-eindcijfer: niet aanwezig — meet VO-instroomprestatie, geen MBO-equivalent
 - Diplomajaar en instelling van vooropleiding
-- Eerstejaars-indicator (niet standaard geleverd)
+- Eerstejaars-indicator (deels afleidbaar met longitudinale data)
 
 ---
 
@@ -480,11 +539,11 @@ De huidige data is **niet longitudinaal**: één levering is een snapshot. Herin
 
 **Essentiële variabelen ontbrekend ❌**
 
-- Absentie (`absence_unauthorized`, `absence_authorized`) — kernfeature uitnodigingsregel, niet aanwezig in DUO MBO-formaten
-- Verblijfsjaar (H15/H17 — alleen in H16)
-- Eerstejaars-indicator
-- Koppeling MBO→HO doorstroom (cross-sectoraal)
-- Postcode (geografische mobiliteit)
+- Absentie (`absence_unauthorized`, `absence_authorized`) — kernfeature uitnodigingsregel, **niet aanwezig** in DUO MBO-formaten en niet afleidbaar
+- Verblijfsjaar (H15/H17 niet aanwezig; H16 deprecated per 2018; afleidbaar met longitudinale data)
+- Eerstejaars-indicator (afleidbaar met longitudinale data)
+- Koppeling MBO→HO doorstroom (cross-sectoraal, vereist aparte koppeling buiten DUO MBO-bestanden)
+- Postcode (geografische mobiliteit: alleen H17, niet H15/H16)
 
 ---
 
@@ -492,19 +551,21 @@ De huidige data is **niet longitudinaal**: één levering is een snapshot. Herin
 
 **Uitvoerbaarheid: 🔴 Niet uitvoerbaar met huidige MBO-data**
 
-Vooropleidingsdata is **niet beschikbaar** in H15, H16 of H17. De GEO-records in H15 en H17 bevatten generieke examenonderdelen (rekenen, Nederlands — met cijfers en vrijstellingen), niet de vooropleiding van de student. Dit is empirisch vastgesteld op de demo-data: GEO-velden bevatten numerieke cijfers en vrijstellingscodes, geen onderwijsniveaus.
+Vooropleidingsdata is **niet beschikbaar** in H15, H16 of H17. De GEO-records in H15 en H17 bevatten generieke examenonderdelen (rekenen, Nederlands, Engels — met IE/CE-cijfers en vrijstellingen). Dit zijn resultaten die studenten behalen ínnerhalb het MBO-programma, niet informatie over welke opleiding ze daarvóór hebben gevolgd. Empirisch vastgesteld: GEO-velden bevatten numerieke cijfers en vrijstellingscodes (bijv. MBO, KZDL), geen vooropleidingsniveaus.
 
-De uitnodigingsregel gebruikt `VooroplNiveau_*` als feature (HAVO, MBO, VMBO_BB, VMBO_GL, VMBO_KB, VMBO_TL etc.). Die variabele is volledig afwezig in de MBO-leveringen en kan niet worden afgeleid.
+Nuance: GEO-vrijstellingscodes (MBO, HAVO, VWO, KZDL) geven indirect aan met welk niveau een student vrijstelling heeft gekregen. Dit is een zwakke proxy voor vooropleidingsniveau, maar geen betrouwbare variabele voor instroomprofielen.
+
+De uitnodigingsregel gebruikt `VooroplNiveau_*` als feature (HAVO, VMBO_BB, VMBO_GL, VMBO_KB, VMBO_TL, MBO 1-4 etc.). Die variabele is volledig afwezig in de MBO-leveringen en kan niet betrouwbaar worden afgeleid.
 
 **Wat wordt mogelijk met longitudinale data:** Instroomprofielen blijven onzichtbaar zolang DUO geen aparte vooropleidingsrecords levert in de MBO-formaten.
 
 **Essentiële variabelen aanwezig ✅**
 
-— geen
+- GEO-vrijstellingscodes (MBO/HAVO/VWO/KZDL) als zeer beperkte proxy voor vooropleidingsniveau
 
 **Essentiële variabelen ontbrekend ❌**
 
-- Vooropleiding niveau (MBO/VMBO/HAVO/VWO) — niet in H15/H16/H17
+- Vooropleiding niveau en type (MBO/VMBO/HAVO/VWO) — niet in H15/H16/H17
 - Gedetailleerde DUO-vooropleidingscode (VMBO-subtype BB/KB/GL/TL, MBO niveau 1-4)
-- VO-eindcijfer
+- VO-eindcijfer als instroomkwaliteitmaatstaf (GEO-cijfers meten prestatie binnen MBO, niet instroom)
 - Diplomajaar en instelling van vooropleiding
