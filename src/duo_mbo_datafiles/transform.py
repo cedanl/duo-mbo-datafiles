@@ -38,12 +38,14 @@ def derive_leeftijd(df: pd.DataFrame) -> pd.Series:
 def derive_dropout(df: pd.DataFrame) -> pd.Series:
     """Leid dropout af: uitgeschreven zonder diploma.
 
-    Definitie: `uitschrijving_reden` is ingevuld én `heeft_diploma` is False.
+    Gebruikt uitschrijving_reden (H15/H17) of uitschrijving_werkelijk (H16,
+    geen reden-code beschikbaar) als indicator dat een student is uitgeschreven.
     Beperking: in een snapshot-levering is niet te controleren of de student
-    later elders heringeschreven is. Gebruik meerdere opeenvolgende leveringen
-    voor een volledige dropout-validatie conform 1-cijferHO-definitie.
+    later elders heringeschreven is.
     """
     uitgeschreven = df["uitschrijving_reden"].notna() & (df["uitschrijving_reden"] != "")
+    if "uitschrijving_werkelijk" in df.columns:
+        uitgeschreven = uitgeschreven | df["uitschrijving_werkelijk"].notna()
     return (uitgeschreven & ~df["heeft_diploma"]).rename("dropout")
 
 
