@@ -19,6 +19,21 @@ Dit rapport vergelijkt de variabelen uit het **1cijferHO EV-bestand** (115 kolom
 
 1cijferHO is de leidende referentie. Per variabele is aangegeven of deze beschikbaar is in de MBO-bestanden (gecombineerd best-case). Vervolgens wordt per diagnostische dimensie geanalyseerd hoe uitvoerbaar de bijbehorende analyses zijn.
 
+### DUO MBO-bestandsformaten
+
+| Formaat | Naam | Type | PVE | Beschrijving |
+|---------|------|------|-----|--------------|
+| **H15** | Registratie Overzicht (RO) | CSV | hfdst. 15 | Alle inschrijvingen en diploma's van één instelling binnen een opgegeven selectieperiode |
+| **H16** | TBG-i | XML | hfdst. 16 | Terugmelding BekostigingsGrondslagen-individueel: inschrijvingen en diploma's relevant voor één specifiek bekostigingsjaar T (inschrijvingen studiejaar T−2/T−1, diploma's kalenderjaar T−2) |
+| **H17** | Grondslag IP | CSV | hfdst. 17 | Afslag van de register-levering aan IP met gegevens voor de ontvangende BRIN |
+
+**Deelnemende instellingen (demo-data):**
+
+| Instelling | BRIN | Beschikbare formaten |
+|-----------|------|----------------------|
+| Aventus | 27DV | H15 (RO) + H17 (IP-afslag) |
+| Curio | 21CY, 25LX | H15 (RO, 2 bestanden) + H16 (TBG-i, BRIN 25LX) |
+
 **Notatie:**
 
 | Symbool | Betekenis |
@@ -192,6 +207,31 @@ for categorie, groep in df.groupby("Categorie", sort=False):
     display(HTML(f"<h4>{categorie}</h4>"))
     tabel = groep[["Variabele", "1cijferHO", "MBO-data", "Noot"]].reset_index(drop=True)
     display(tabel.style.hide(axis="index"))
+```
+
+### Aanvullend in MBO-data (niet in 1cijferHO)
+
+De MBO-bestandsformaten bevatten een aantal velden die geen equivalent hebben in het 1cijferHO EV-bestand. Dit zijn MBO-specifieke kenmerken die relevant zijn voor bekostiging, beroepspraktijkvorming en modulaire kwalificaties.
+
+```{python}
+MBO_EXTRA = [
+    ("Beroepspraktijkvorming (BPV-record)", "H15 / H17",
+     "Stageplaats bij werkgever: BRIN instelling, leerroute fase (C1–C5), begin- en einddatum, aantal BPV-dagen"),
+    ("MBO-kwalificatieniveau (1–4)", "H15 / H16 / H17",
+     "Specifiek MBO-opleidingsniveau (1, 2, 3 of 4) via ISP/GEO-records; fijnmaziger dan de globale categorie in 1cijferHO"),
+    ("Kwalificatiedossier (KZD-record)", "H17",
+     "Individueel behaalde deelkwalificaties per student met kwalificatiecode en status (bijv. BEHAALD)"),
+    ("Bekostigingsfactoren (BBLBOLFactor, PrijsfactorMBO)", "H16",
+     "Bekostigingsgewicht per leertraject en prijsfactor MBO; gebruikt in terugmelding bekostigingsgrondslagen"),
+    ("IndicatieBekostigbaar / Bekostigingsstatus", "H16",
+     "Indicatie of de inschrijving bekostigbaar is en de status van de bekostigingsbepaling"),
+    ("AantalBekostigdeVerblijfsjarenMBO", "H16",
+     "Aantal bekostigde verblijfsjaren in het MBO — ander concept dan het HO-verblijfsjaar in 1cijferHO"),
+]
+
+df_extra = pd.DataFrame(MBO_EXTRA, columns=["Variabele", "Beschikbaar in", "Beschrijving"])
+display(HTML("<p><em>Variabelen aanwezig in MBO-formaten zonder equivalent in 1cijferHO EV-bestand.</em></p>"))
+display(df_extra.style.hide(axis="index"))
 ```
 
 ---
