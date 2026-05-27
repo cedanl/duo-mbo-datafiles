@@ -44,6 +44,8 @@ Dit rapport vergelijkt de variabelen uit het **1cijferHO EV-bestand** (115 kolom
 
 > ⚠️-noot H15/H17: variabele aanwezig in H15 en H17, maar **niet in H16** (TBG-i XML).
 
+> **VAKHAVW**: apart 1cijferHO-bestand met per-vak havo/vwo examenscores van studenten. Bevat geen equivalent in MBO-leveringen — MBO-studenten hebben geen VO-vakkenhistorie in de MBO-bestanden. Het MBO kent wel eigen examenonderdelen (rekenen/Nederlands via GEO-records), maar die staan in de MBO-extra sectie hieronder.
+
 ---
 
 ## Vergelijkingstabel
@@ -184,6 +186,24 @@ KOLOMMEN = {
     "Postcode & geografie": [
         ("Postcodecijfers student op 1 oktober", "⚠️", "H17 PER-record (4 cijfers, incl. buitenlandcodes 0010–0040); H15/H16 niet"),
     ],
+    "VAKHAVW — VO-examengegevens per vak (apart 1cijferHO-bestand)": [
+        ("Brinnummer VO-instelling", "❌", "Instelling waar havo/vwo-diploma is behaald"),
+        ("Vestigingsnummer VO-vestiging", "❌", ""),
+        ("Gemiddeld cijfer cijferlijst (VO)", "❌", "Gewogen gemiddeld eindcijfer havo/vwo"),
+        ("Vakcode", "❌", "Vakcode per vak (bijv. wiskunde A, Nederlands)"),
+        ("Afkorting vak", "❌", ""),
+        ("Ander niveau (vak)", "❌", "Indicatie of vak op afwijkend niveau is afgelegd"),
+        ("Indicatie diplomavak", "❌", ""),
+        ("Cijfer schoolexamen", "❌", "Schoolexamencijfer per vak"),
+        ("Beoordeling schoolexamen", "❌", ""),
+        ("Cijfer eerste centraal examen", "❌", ""),
+        ("Cijfer tweede centraal examen", "❌", "Herexamen"),
+        ("Cijfer derde centraal examen", "❌", ""),
+        ("Eerste eindcijfer", "❌", "Eindcijfer na weging SE/CE"),
+        ("Tweede eindcijfer", "❌", ""),
+        ("Derde eindcijfer", "❌", ""),
+        ("Cijfer cijferlijst", "❌", "Definitief cijfer op de cijferlijst"),
+    ],
 }
 
 rijen = []
@@ -211,27 +231,127 @@ for categorie, groep in df.groupby("Categorie", sort=False):
 
 ### Aanvullend in MBO-data (niet in 1cijferHO)
 
-De MBO-bestandsformaten bevatten een aantal velden die geen equivalent hebben in het 1cijferHO EV-bestand. Dit zijn MBO-specifieke kenmerken die relevant zijn voor bekostiging, beroepspraktijkvorming en modulaire kwalificaties.
+Alle velden uit H15, H16 en H17 die geen equivalent hebben in het 1cijferHO EV- of VAKHAVW-bestand. Inclusief bekostigings-, kwalificatie- en beroepspraktijkvormingsvelden.
 
 ```{python}
-MBO_EXTRA = [
-    ("Beroepspraktijkvorming (BPV-record)", "H15 / H17",
-     "Stageplaats bij werkgever: BRIN instelling, leerroute fase (C1–C5), begin- en einddatum, aantal BPV-dagen"),
-    ("MBO-kwalificatieniveau (1–4)", "H15 / H16 / H17",
-     "Specifiek MBO-opleidingsniveau (1, 2, 3 of 4) via ISP/GEO-records; fijnmaziger dan de globale categorie in 1cijferHO"),
-    ("Kwalificatiedossier (KZD-record)", "H17",
-     "Individueel behaalde deelkwalificaties per student met kwalificatiecode en status (bijv. BEHAALD)"),
-    ("Bekostigingsfactoren (BBLBOLFactor, PrijsfactorMBO)", "H16",
-     "Bekostigingsgewicht per leertraject en prijsfactor MBO; gebruikt in terugmelding bekostigingsgrondslagen"),
-    ("IndicatieBekostigbaar / Bekostigingsstatus", "H16",
-     "Indicatie of de inschrijving bekostigbaar is en de status van de bekostigingsbepaling"),
-    ("AantalBekostigdeVerblijfsjarenMBO", "H16",
-     "Aantal bekostigde verblijfsjaren in het MBO — ander concept dan het HO-verblijfsjaar in 1cijferHO"),
-]
+MBO_EXTRA = {
+    "Kwalificaties & examenonderdelen": [
+        ("MBO-kwalificatieniveau (1–4)", "H15 / H16 / H17",
+         "Specifiek MBO-opleidingsniveau via ISP-record (Niveau) of Teldatum (H16)"),
+        ("Leerroute (vmbo-mbo doorgaande leerroute)", "H15 / H16 / H17",
+         "Aanduiding of student een doorgaande vmbo-mbo leerroute volgt"),
+        ("Leerroutefase (VO / MBO)", "H15 / H16 / H17",
+         "Fase in de doorgaande leerroute: VO-gedeelte of MBO-gedeelte"),
+        ("Generiek examenonderdeel — code (GEO)", "H15 / H17",
+         "Code voor verplicht examenonderdeel: 3001=Nederlands, 3002=Engels, 3005=Rekenen"),
+        ("Generiek examenonderdeel — eindcijfer", "H15 / H17",
+         "Eindcijfer voor het generieke examenonderdeel"),
+        ("Generiek examenonderdeel — cijfer IE (instellingsexamen)", "H15 / H17",
+         "Instellingsexamencijfer × 10 (bijv. 74 = 7.4)"),
+        ("Generiek examenonderdeel — cijfer CE (centraal examen)", "H15 / H17",
+         "Centraalexamencijfer × 10"),
+        ("Generiek examenonderdeel — vrijstelling", "H15 / H17",
+         "Code voor vrijstelling van het examenonderdeel (bijv. MBO, KZDL)"),
+        ("Keuzedeel — code (KZD)", "H15 / H17",
+         "Code van het behaalde of gevolgde keuzedeel"),
+        ("Keuzedeel — resultaat", "H15 / H17",
+         "Behaald / Niet behaald"),
+        ("Keuzedeel — certificaat", "H15 / H17",
+         "Indicatie of een los certificaat is uitgereikt (J/N)"),
+        ("AMvB-onderdeel — code (AMO)", "H15 / H17",
+         "Code voor AMvB-examenonderdeel (verplicht onderdeel kwalificatiedossier)"),
+        ("AMvB-onderdeel — datum resultaat", "H15 / H17",
+         ""),
+        ("AMvB-onderdeel — certificaat", "H15 / H17",
+         "Indicatie los AMvB-certificaat (J/N)"),
+    ],
+    "Beroepspraktijkvorming (BPV)": [
+        ("BPV — LeerbedrijfID (SBB-nummer)", "H15 / H17",
+         "Identificatienummer leerbedrijf in het SBB-register"),
+        ("BPV — afsluitdatum praktijkovereenkomst", "H15 / H17",
+         "Datum waarop de praktijkovereenkomst is afgesloten"),
+        ("BPV — datum begin", "H15 / H17",
+         "Startdatum BPV-periode"),
+        ("BPV — datum einde gepland", "H15 / H17",
+         ""),
+        ("BPV — datum einde werkelijk", "H15 / H17",
+         ""),
+        ("BPV — omvang (uren)", "H15 / H17",
+         "Totaal aantal uren beroepspraktijkvorming"),
+        ("BPV — opleidingcode (tijdens BPV)", "H15 / H17",
+         "CREBO-code van de opleiding waarvoor de BPV geldt"),
+        ("BPV — code keuzedeel", "H15 / H17",
+         "Als de BPV gekoppeld is aan een keuzedeel"),
+    ],
+    "Locatie & uitvoeringsorganisatie": [
+        ("Locatiecode VSV (vestigingsnummer NHR)", "H15 / H17",
+         "Vestigingsnummer van de onderwijslocatie in het Nationaal Handelsregister"),
+        ("Onderwijsaanbieder (RIO-code)", "H15 / H17",
+         "RIO-code van de aanbieder die de opleiding uitvoert (nnnAnnn)"),
+        ("Onderwijslocatie (RIO-code)", "H15 / H17",
+         "RIO-code van de locatie waar onderwijs wordt gegeven (nnnXnnn)"),
+    ],
+    "Bekostiging — inschrijving": [
+        ("Indicatie bekostigbaar (per ISP-periode)", "H15 / H17",
+         "J/N: is deze inschrijvingsperiode bekostigbaar?"),
+        ("Bekostigingsstatus inschrijving", "H16 / H17 (BII)",
+         "Definitief (D) of voorlopig (V) vastgesteld"),
+        ("InschrijvingVoorCorrectiefactor", "H16 / H17 (BII)",
+         "Indicatie of correctiefactor van toepassing is"),
+        ("BBLBOLFactor", "H16 / H17 (BII)",
+         "Bekostigingsgewicht afhankelijk van leertraject (BBL/BOL); waarde tussen 0–2"),
+        ("PrijsfactorMBO", "H16 / H17 (BII)",
+         "Sectorgebonden prijsfactor voor de bekostiging; afhankelijk van opleidingssector"),
+        ("AantalBekostigdeVerblijfsjarenMBO", "H16 / H17 (BII)",
+         "Deprecated per 01-10-2018; veld aanwezig maar altijd leeg in moderne leveringen"),
+        ("Verblijfsjaarfactor", "H16 / H17 (BII)",
+         "Deprecated per 01-10-2018"),
+        ("BijdrageInschrijvingAanDeelnemerswaarde", "H16 / H17 (BII)",
+         "Berekende bijdrage van deze inschrijving aan de deelnemerswaarde (financieel)"),
+    ],
+    "Bekostiging — diploma": [
+        ("Indicatie bekostigbaar (per diploma)", "H15 / H17",
+         "J/N: telt dit diploma mee voor de bekostiging?"),
+        ("IndicatieSpecialistendiploma", "H16 / H17 (BID)",
+         "J/N: is dit een specialistendiploma (niveau 4+)?"),
+        ("NiveauHoogstBekostigdeDiploma", "H16",
+         "MBO-niveau van het hoogst eerder bekostigde diploma van deze student"),
+        ("IndicatieHoogstBekostigdeDiplomaIsSpecialist", "H16",
+         ""),
+        ("BijdrageDiplomawaarde", "H16 / H17 (BID)",
+         "Berekende bijdrage van dit diploma aan de diplomawaarde (financieel)"),
+        ("Bekostigingsstatus diploma", "H16 / H17 (BID)",
+         "Definitief (D) of voorlopig (V)"),
+    ],
+    "Extra ondersteuning (ISE)": [
+        ("Datum begin extra ondersteuning", "H15 / H17",
+         "Startdatum periode extra ondersteuning (bijv. praktijkonderwijs-achtergrond)"),
+        ("Datum eind extra ondersteuning", "H15 / H17",
+         ""),
+    ],
+    "Aanvullende persoonsgegevens H17": [
+        ("Leeftijd op peildata 2/3/4", "H17",
+         "H17 levert leeftijden op 4 peildata; wij gebruiken peildata 1 (1 oktober)"),
+        ("Verblijfstitel", "H17",
+         "Code verblijfsstatus; indirecte proxy voor EER/niet-EER verblijfsrecht"),
+        ("Datum Vestiging in Nederland", "H17",
+         "Datum waarop student zich in Nederland heeft gevestigd"),
+        ("Datum Vertrek uit Nederland", "H17",
+         ""),
+        ("Code Land Waarnaar Vertrokken", "H17",
+         ""),
+        ("Datum Overlijden", "H17",
+         ""),
+    ],
+}
 
-df_extra = pd.DataFrame(MBO_EXTRA, columns=["Variabele", "Beschikbaar in", "Beschrijving"])
-display(HTML("<p><em>Variabelen aanwezig in MBO-formaten zonder equivalent in 1cijferHO EV-bestand.</em></p>"))
-display(df_extra.style.hide(axis="index"))
+for groep_naam, items in MBO_EXTRA.items():
+    df_grp = pd.DataFrame(items, columns=["Variabele", "Beschikbaar in", "Beschrijving"])
+    display(HTML(f"<h4>{groep_naam}</h4>"))
+    display(df_grp.style.hide(axis="index"))
+
+totaal_extra = sum(len(v) for v in MBO_EXTRA.values())
+print(f"Totaal MBO-specifieke variabelen: {totaal_extra}")
 ```
 
 ---
